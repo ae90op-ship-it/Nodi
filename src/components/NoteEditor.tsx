@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Markdown from 'react-markdown';
 import { ArrowLeft, Save, Edit3, Eye } from 'lucide-react';
 import { db } from '../db';
@@ -12,6 +12,7 @@ export function NoteEditor({ nodeId, onClose }: NoteEditorProps) {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("ملاحظة جديدة");
   const [isEditing, setIsEditing] = useState(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -32,19 +33,33 @@ export function NoteEditor({ nodeId, onClose }: NoteEditorProps) {
     await db.nodes.update(nodeId, { title: newTitle, updatedAt: Date.now() });
   };
 
-  const saveState = async () => {
+  const saveState = useCallback(async (newContent: string) => {
     await db.notes.put({
       id: nodeId,
-      content,
+      content: newContent,
       updatedAt: Date.now()
     });
+  }, [nodeId]);
+
+  // Debounced Auto-save
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      saveState(newContent);
+    }, 500); // 500ms debounce
   };
 
-  // Auto-save
   useEffect(() => {
-    const timer = setTimeout(() => saveState(), 1000);
-    return () => clearTimeout(timer);
-  }, [content]);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-neutral-900 text-neutral-100" dir="rtl">
@@ -82,7 +97,7 @@ export function NoteEditor({ nodeId, onClose }: NoteEditorProps) {
         {isEditing ? (
           <textarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={handleContentChange}
             className="w-full h-full bg-transparent outline-none resize-none text-lg leading-relaxed text-neutral-300 placeholder:text-neutral-600"
             placeholder="اكتب ملاحظاتك هنا... يدعم Markdown"
           />

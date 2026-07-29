@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { evaluate } from 'mathjs';
 import { ArrowLeft, Save, Plus } from 'lucide-react';
@@ -58,13 +58,17 @@ export function TapeCalculator({ nodeId, onClose }: TapeCalculatorProps) {
     const updatedLines = lines.map(line => 
       line.id === id ? { ...line, expression: newExpression } : line
     );
-    setLines(recalculate(updatedLines));
+    const newCalculatedLines = recalculate(updatedLines);
+    setLines(newCalculatedLines);
+    triggerSave(newCalculatedLines);
   };
 
   const handleCommentChange = (id: string, newComment: string) => {
-    setLines(lines.map(line => 
+    const updatedLines = lines.map(line => 
       line.id === id ? { ...line, comment: newComment } : line
-    ));
+    );
+    setLines(updatedLines);
+    triggerSave(updatedLines);
   };
 
   const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +79,9 @@ export function TapeCalculator({ nodeId, onClose }: TapeCalculatorProps) {
 
   const addLine = () => {
     const newLine = { id: uuidv4(), expression: '', result: null, comment: '' };
-    setLines(recalculate([...lines, newLine]));
+    const newLines = recalculate([...lines, newLine]);
+    setLines(newLines);
+    triggerSave(newLines);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
@@ -83,24 +89,31 @@ export function TapeCalculator({ nodeId, onClose }: TapeCalculatorProps) {
       e.preventDefault();
       const index = lines.findIndex(l => l.id === id);
       const newLine = { id: uuidv4(), expression: '', result: null, comment: '' };
-      const newLines = [...lines.slice(0, index + 1), newLine, ...lines.slice(index + 1)];
-      setLines(recalculate(newLines));
+      const updatedLines = [...lines.slice(0, index + 1), newLine, ...lines.slice(index + 1)];
+      const newCalculatedLines = recalculate(updatedLines);
+      setLines(newCalculatedLines);
+      triggerSave(newCalculatedLines);
     }
   };
 
-  const saveState = async () => {
-    await db.calctapes.put({
-      id: nodeId,
-      lines,
-      updatedAt: Date.now()
-    });
-  };
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-save debounced
+  const triggerSave = useCallback((currentLines: TapeLine[]) => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      await db.calctapes.put({
+        id: nodeId,
+        lines: currentLines,
+        updatedAt: Date.now()
+      });
+    }, 500);
+  }, [nodeId]);
+
   useEffect(() => {
-    const timer = setTimeout(() => saveState(), 500);
-    return () => clearTimeout(timer);
-  }, [lines]);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
 
   const totalSum = lines[lines.length - 1]?.result || 0;
 
@@ -120,7 +133,7 @@ export function TapeCalculator({ nodeId, onClose }: TapeCalculatorProps) {
           />
         </div>
         <div className="flex gap-2">
-          <button onClick={saveState} className="p-2 hover:bg-neutral-800 rounded-full text-neutral-400">
+          <button onClick={() => triggerSave(lines)} className="p-2 hover:bg-neutral-800 rounded-full text-neutral-400">
             <Save size={20} />
           </button>
         </div>

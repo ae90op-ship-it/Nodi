@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Stage, Layer, Line, Text as KonvaText, Rect } from 'react-konva';
 import { ArrowLeft, Pen, Square, Type, MousePointer2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -52,14 +52,30 @@ export function Whiteboard({ nodeId, onClose }: WhiteboardProps) {
     await db.nodes.update(nodeId, { title: newTitle, updatedAt: Date.now() });
   };
 
-  const saveState = async (newElements: WhiteboardElement[]) => {
+  // Debounced auto-save
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerSave = useCallback((newElements: WhiteboardElement[]) => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      await db.whiteboards.put({
+        id: nodeId,
+        elements: newElements,
+        updatedAt: Date.now()
+      });
+    }, 500);
+  }, [nodeId]);
+
+  const saveState = (newElements: WhiteboardElement[]) => {
     setElements(newElements);
-    await db.whiteboards.put({
-      id: nodeId,
-      elements: newElements,
-      updatedAt: Date.now()
-    });
+    triggerSave(newElements);
   };
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    }
+  }, []);
 
   const handleMouseDown = (e: any) => {
     if (tool === 'select') return;
