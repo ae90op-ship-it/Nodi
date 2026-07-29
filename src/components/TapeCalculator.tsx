@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { evaluate } from 'mathjs';
-import { ArrowLeft, Save, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { db } from '../db';
 import type { TapeLine, CalcTapeData } from '../types';
 
 interface TapeCalculatorProps {
   nodeId: string;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-export function TapeCalculator({ nodeId, onClose }: TapeCalculatorProps) {
+export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProps) {
   const [lines, setLines] = useState<TapeLine[]>([]);
   const [title, setTitle] = useState("شريط الحسابات");
 
@@ -133,6 +134,11 @@ export function TapeCalculator({ nodeId, onClose }: TapeCalculatorProps) {
           />
         </div>
         <div className="flex gap-2">
+          {onDelete && (
+            <button onClick={onDelete} className="p-2 hover:bg-red-500/20 text-neutral-400 hover:text-red-500 rounded-full transition-colors" title="حذف">
+              <Trash2 size={20} />
+            </button>
+          )}
           <button onClick={() => triggerSave(lines)} className="p-2 hover:bg-neutral-800 rounded-full text-neutral-400">
             <Save size={20} />
           </button>

@@ -19,14 +19,15 @@ import {
   Panel
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Search } from 'lucide-react';
-import type { AppNode } from '../types';
+import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Search, Trash2 } from 'lucide-react';
+import type { AppNode, AppModule } from '../types';
 import { db } from '../db';
 
 interface GraphViewProps {
   nodes: AppNode[];
   onOpenNode: (id: string) => void;
   onUpdateNodePosition: (id: string, x: number, y: number) => void;
+  onDeleteNode: (id: string, type: AppModule) => void;
   searchQuery: string;
 }
 
@@ -36,7 +37,7 @@ type CustomNodeData = AppNode & {
 } & Record<string, unknown>;
 
 // Custom Node Component to render the styled cards on the graph
-const CustomNode = ({ data, id }: NodeProps<FlowNode<CustomNodeData>>) => {
+const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>) => {
   const Icon = useMemo(() => {
     switch (data.type) {
       case 'whiteboard': return ImageIcon;
@@ -49,11 +50,11 @@ const CustomNode = ({ data, id }: NodeProps<FlowNode<CustomNodeData>>) => {
 
   const colorClass = useMemo(() => {
     switch (data.type) {
-      case 'whiteboard': return 'text-blue-400 bg-blue-500/10 border-blue-500/50';
-      case 'calctape': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/50';
-      case 'note': return 'text-amber-400 bg-amber-500/10 border-amber-500/50';
-      case 'drawing': return 'text-purple-400 bg-purple-500/10 border-purple-500/50';
-      default: return 'text-neutral-400 bg-neutral-800 border-neutral-600';
+      case 'whiteboard': return 'text-blue-400 bg-blue-900/30 border-blue-500/50';
+      case 'calctape': return 'text-emerald-400 bg-emerald-900/30 border-emerald-500/50';
+      case 'note': return 'text-amber-400 bg-amber-900/30 border-amber-500/50';
+      case 'drawing': return 'text-purple-400 bg-purple-900/30 border-purple-500/50';
+      default: return 'text-neutral-400 bg-neutral-800/80 border-neutral-600';
     }
   }, [data.type]);
 
@@ -61,13 +62,23 @@ const CustomNode = ({ data, id }: NodeProps<FlowNode<CustomNodeData>>) => {
 
   return (
     <div 
-      className={`px-4 py-3 shadow-xl rounded-xl border backdrop-blur-md min-w-[140px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 cursor-pointer
+      className={`px-4 py-3 shadow-lg rounded-xl border min-w-[140px] flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 cursor-pointer relative group
         ${colorClass}
         ${isMatched ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0a] scale-105' : ''}
         ${!isMatched && data.searchActive ? 'opacity-30 grayscale' : 'opacity-100'}
+        ${selected ? 'ring-2 ring-blue-500' : ''}
       `}
       dir="rtl"
     >
+      {/* Delete Button */}
+      <button 
+        onClick={(e) => { e.stopPropagation(); data.onDelete?.(); }}
+        className="absolute -top-3 -left-3 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-500 hover:scale-110 active:scale-95"
+        title="حذف العقدة"
+      >
+        <Trash2 size={14} />
+      </button>
+
       <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-neutral-400 border-2 border-[#0a0a0a] hover:!bg-white transition-colors" />
       <Icon size={20} />
       <span className="font-semibold text-sm whitespace-nowrap">{data.title}</span>
@@ -80,7 +91,7 @@ const nodeTypes = {
   custom: CustomNode,
 };
 
-function Flow({ nodes, onOpenNode, onUpdateNodePosition, searchQuery }: GraphViewProps) {
+function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQuery }: GraphViewProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   
   // Map our AppNode to ReactFlow Node
@@ -95,10 +106,11 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, searchQuery }: GraphVie
       data: {
         ...n,
         isMatched: isSearchActive && n.title.toLowerCase().includes(lowerQuery),
-        searchActive: isSearchActive
+        searchActive: isSearchActive,
+        onDelete: () => onDeleteNode(n.id, n.type)
       },
     }));
-  }, [nodes, searchQuery]);
+  }, [nodes, searchQuery, onDeleteNode]);
 
   // Build edges based on linkedNodeIds
   const initialEdges: Edge[] = useMemo(() => {
@@ -169,11 +181,12 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, searchQuery }: GraphVie
         className="dark"
         minZoom={0.1}
         maxZoom={4}
+        proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={2} color="#262626" />
         
         {/* Custom Zoom/Pan Controls */}
-        <Panel position="bottom-right" className="flex gap-2 bg-neutral-900/80 backdrop-blur border border-neutral-800 p-2 rounded-2xl shadow-xl mb-4 mr-4">
+        <Panel position="bottom-right" className="flex gap-2 bg-neutral-900/90 border border-neutral-800 p-2 rounded-2xl shadow-xl mb-4 mr-4">
           <button onClick={() => zoomOut()} className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors">
             <ZoomOut size={20} />
           </button>

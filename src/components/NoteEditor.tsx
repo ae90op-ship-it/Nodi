@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Markdown from 'react-markdown';
-import { ArrowLeft, Save, Edit3, Eye } from 'lucide-react';
+import { ArrowLeft, Edit3, Eye, Trash2 } from 'lucide-react';
 import { db } from '../db';
 
 interface NoteEditorProps {
   nodeId: string;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-export function NoteEditor({ nodeId, onClose }: NoteEditorProps) {
+export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("ملاحظة جديدة");
   const [isEditing, setIsEditing] = useState(true);
@@ -76,19 +77,26 @@ export function NoteEditor({ nodeId, onClose }: NoteEditorProps) {
             placeholder="عنوان الملاحظة"
           />
         </div>
-        <div className="flex gap-2 bg-neutral-800 rounded-lg p-1">
-          <button 
-            onClick={() => setIsEditing(true)} 
-            className={`p-2 rounded-md flex items-center gap-2 ${isEditing ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:text-white'}`}
-          >
-            <Edit3 size={16} /> <span className="text-sm">تعديل</span>
-          </button>
-          <button 
-            onClick={() => setIsEditing(false)} 
-            className={`p-2 rounded-md flex items-center gap-2 ${!isEditing ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:text-white'}`}
-          >
-            <Eye size={16} /> <span className="text-sm">معاينة</span>
-          </button>
+        <div className="flex gap-4 items-center">
+          {onDelete && (
+            <button onClick={onDelete} className="p-2 hover:bg-red-500/20 text-neutral-400 hover:text-red-500 rounded-full transition-colors" title="حذف">
+              <Trash2 size={20} />
+            </button>
+          )}
+          <div className="flex gap-2 bg-neutral-800 rounded-lg p-1">
+            <button 
+              onClick={() => setIsEditing(true)} 
+              className={`p-2 rounded-md flex items-center gap-2 ${isEditing ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:text-white'}`}
+            >
+              <Edit3 size={16} /> <span className="text-sm hidden sm:inline">تعديل</span>
+            </button>
+            <button 
+              onClick={() => setIsEditing(false)} 
+              className={`p-2 rounded-md flex items-center gap-2 ${!isEditing ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:text-white'}`}
+            >
+              <Eye size={16} /> <span className="text-sm hidden sm:inline">معاينة</span>
+            </button>
+          </div>
         </div>
       </div>
 
