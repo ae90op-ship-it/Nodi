@@ -1,0 +1,8 @@
+{
+  "name": "Nibras - Visual Productivity Graph",
+  "description": "A cross-platform productivity and visual-analysis application with an interconnected graph, whiteboard, calc-tape, and notes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
