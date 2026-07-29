@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Search, Settings as SettingsIcon } from 'lucide-react';
+import { Search, Settings as SettingsIcon, Download, Upload } from 'lucide-react';
 import { db } from './db';
 import { GraphView } from './components/GraphView';
 import { QuickAddMenu } from './components/QuickAddMenu';
@@ -18,11 +18,11 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { settings } = useSettings();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Live query for all nodes to feed the graph
   const nodes = useLiveQuery(() => db.nodes.toArray(), []) || [];
 
-  const handleAddNode = async (type: AppModule) => {
+  const handleAddNode = useCallback(async (type: AppModule) => {
     try {
       const id = uuidv4();
       const t = settings.language === 'ar';
@@ -32,11 +32,9 @@ export default function App() {
       if (type === 'note') title = t ? 'ملاحظة' : 'Note';
       if (type === 'drawing') title = t ? 'رسم سريع' : 'Quick Draw';
 
-      // Calculate a good starting position
       const x = Math.random() * 200 - 100;
       const y = Math.random() * 200 - 100;
 
-      // Use Dexie transaction to ensure data integrity
       await db.transaction('rw', db.nodes, db.calctapes, db.notes, db.whiteboards, async () => {
         await db.nodes.add({
           id,
@@ -49,7 +47,6 @@ export default function App() {
           updatedAt: Date.now(),
         });
 
-        // Initialize specific data stores
         if (type === 'calctape') {
           await db.calctapes.add({ id, lines: [], updatedAt: Date.now() });
         } else if (type === 'note') {
@@ -59,13 +56,27 @@ export default function App() {
         }
       });
 
-      // Auto-open on add
       setActiveNodeId(id);
     } catch (error) {
       console.error("Failed to add node transaction:", error);
-      alert("حدث خطأ أثناء إنشاء العقدة.");
+      alert(settings.language === 'ar' ? 'حدث خطأ أثناء إنشاء العقدة.' : 'Error creating node.');
     }
-  };
+  }, [settings.language]);
+
+  // Global Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        handleAddNode('note'); // quick default
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault(); // auto-save is already handling data
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleAddNode]);
 
   const handleOpenNode = useCallback((id: string) => {
     setActiveNodeId(id);
@@ -93,14 +104,12 @@ export default function App() {
 
   const activeNode = activeNodeId ? nodes.find(n => n.id === activeNodeId) : null;
   
-  // Clear activeNodeId if node doesn't exist anymore to avoid blank screen
   useEffect(() => {
     if (activeNodeId && nodes.length > 0 && !activeNode) {
       setActiveNodeId(null);
     }
   }, [activeNodeId, activeNode, nodes.length]);
 
-  // Render the active view
   const renderContent = () => {
     if (!activeNode) return null;
     
@@ -116,22 +125,67 @@ export default function App() {
     return null;
   };
 
+  const exportData = async () => {
+    const allNodes = await db.nodes.toArray();
+    const calctapes = await db.calctapes.toArray();
+    const notes = await db.notes.toArray();
+    const whiteboards = await db.whiteboards.toArray();
+    const data = { nodes: allNodes, calctapes, notes, whiteboards };
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'nibras-backup.json';
+    a.click();
+  };
+
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        await db.transaction('rw', db.nodes, db.calctapes, db.notes, db.whiteboards, async () => {
+          await db.nodes.clear();
+          await db.calctapes.clear();
+          await db.notes.clear();
+          await db.whiteboards.clear();
+          
+          if (data.nodes) await db.nodes.bulkAdd(data.nodes);
+          if (data.calctapes) await db.calctapes.bulkAdd(data.calctapes);
+          if (data.notes) await db.notes.bulkAdd(data.notes);
+          if (data.whiteboards) await db.whiteboards.bulkAdd(data.whiteboards);
+        });
+        alert(settings.language === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!');
+      } catch (err) {
+        console.error(err);
+        alert(settings.language === 'ar' ? 'فشل استيراد البيانات.' : 'Failed to import data.');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <div 
-      className="w-screen h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-500"
-      style={{ 
-        backgroundColor: settings.backgroundColor,
-        backgroundImage: settings.backgroundImage ? `url(${settings.backgroundImage})` : 'none',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
+      className="w-screen h-screen overflow-hidden relative flex flex-col transition-colors duration-300"
+      dir={settings.language === 'ar' ? 'rtl' : 'ltr'}
+      style={{ backgroundColor: settings.backgroundColor }}
     >
-      <div 
-        className="w-full h-full max-w-[1600px] bg-neutral-950/90 rounded-[40px] shadow-2xl border border-neutral-800/50 overflow-hidden relative flex flex-col"
-        dir={settings.language === 'ar' ? 'rtl' : 'ltr'}
-      >
-        {!activeNodeId ? (
-          <div className="w-full h-full relative fade-in">
+      {!activeNodeId ? (
+        <div className="w-full h-full relative fade-in">
+          {/* Graph Background Overlay */}
+          <div 
+            className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-300"
+            style={{
+              backgroundImage: settings.backgroundImage ? `url(${settings.backgroundImage})` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              opacity: settings.canvasOpacity / 100
+            }}
+          />
+          <div className="absolute inset-0 z-10">
             <GraphView 
               nodes={nodes} 
               onOpenNode={handleOpenNode} 
@@ -139,49 +193,68 @@ export default function App() {
               onDeleteNode={handleDeleteNode}
               searchQuery={searchQuery}
             />
+          </div>
+          <div className="z-20 relative">
             <QuickAddMenu onAdd={handleAddNode} />
+          </div>
+          
+          {/* Top Bar */}
+          <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start pointer-events-none z-30">
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur px-5 py-2 md:px-6 md:py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 pointer-events-auto shadow-sm">
+              <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500">
+                Nibras
+              </h1>
+            </div>
             
-            {/* Top Bar */}
-            <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start pointer-events-none z-10">
-              <div className="bg-neutral-900/80 px-5 py-2 md:px-6 md:py-3 rounded-2xl border border-neutral-800 pointer-events-auto">
-                <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                  Nibras
-                </h1>
-              </div>
-              
-              <div className="flex gap-2 md:gap-4 pointer-events-auto items-center">
-                {/* Search Bar */}
-                <div className="relative group hidden sm:block">
-                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-400 transition-colors" size={18} />
-                  <input 
-                    type="text"
-                    placeholder={settings.language === 'ar' ? 'البحث عن عقدة...' : 'Search nodes...'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-neutral-900/80 border border-neutral-800 text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-blue-500/50 transition-all duration-300 placeholder:text-neutral-500"
-                  />
-                </div>
+            <div className="flex gap-2 md:gap-4 pointer-events-auto items-center">
+              {/* Import/Export */}
+              <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={importData} />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                title={settings.language === 'ar' ? 'استيراد نسخة احتياطية' : 'Import Backup'}
+              >
+                <Upload size={20} />
+              </button>
+              <button 
+                onClick={exportData}
+                className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                title={settings.language === 'ar' ? 'تصدير نسخة احتياطية' : 'Export Backup'}
+              >
+                <Download size={20} />
+              </button>
 
-                {/* Settings Button */}
-                <button 
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="p-2 md:p-3 bg-neutral-900/80 border border-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-2xl transition-all shadow-lg active:scale-95"
-                >
-                  <SettingsIcon size={22} />
-                </button>
+              {/* Search Bar */}
+              <div className="relative group hidden sm:block">
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={18} />
+                <input 
+                  type="text"
+                  placeholder={settings.language === 'ar' ? 'البحث عن عقدة...' : 'Search nodes...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-blue-500/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
+                />
               </div>
+
+              {/* Settings Button */}
+              <button 
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+              >
+                <SettingsIcon size={22} />
+              </button>
             </div>
           </div>
-        ) : (
-          <div className="w-full h-full bg-neutral-900 overflow-hidden fade-in">
-            <ErrorBoundary>
-              {renderContent()}
-            </ErrorBoundary>
-          </div>
-        )}
+        </div>
+      ) : (
+        <div className="w-full h-full bg-white dark:bg-neutral-900 overflow-hidden fade-in z-40 relative">
+          <ErrorBoundary>
+            {renderContent()}
+          </ErrorBoundary>
+        </div>
+      )}
 
-        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-      </div>
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }

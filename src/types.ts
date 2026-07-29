@@ -7,6 +7,7 @@ export interface AppNode {
   x: number;
   y: number;
   linkedNodeIds: string[];
+  edgeLabels?: Record<string, string>;
   createdAt: number;
   updatedAt: number;
 }
