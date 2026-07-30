@@ -5,8 +5,8 @@
 }
 
 html, body, #root {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -40,6 +40,16 @@ html.dark body {
   @apply border-neutral-300 dark:border-neutral-800;
 }
 
+/* Strikethrough for Checklists */
+input[type="checkbox"]:checked + span,
+li:has(> input[type="checkbox"]:checked) > span,
+li:has(> input[type="checkbox"]:checked) {
+  @apply line-through opacity-60 transition-all duration-300;
+}
+input[type="checkbox"] {
+  @apply cursor-pointer accent-blue-500 w-4 h-4 rounded-sm border-2 border-neutral-400 dark:border-neutral-600;
+}
+
 @layer utilities {
   .markdown-body h1 {
     @apply text-3xl font-bold mb-4 mt-6 text-neutral-900 dark:text-white;
@@ -63,16 +73,16 @@ html.dark body {
     @apply mb-1;
   }
   .markdown-body a {
-    @apply text-amber-600 dark:text-amber-400 hover:underline;
+    @apply text-blue-600 dark:text-blue-400 hover:underline;
   }
   .markdown-body blockquote {
-    @apply border-l-4 border-amber-500/50 pl-4 italic text-neutral-600 dark:text-neutral-400 my-4 bg-neutral-100 dark:bg-neutral-800/30 py-2 rounded-r-lg;
+    @apply border-l-4 border-blue-500/50 pl-4 italic text-neutral-600 dark:text-neutral-400 my-4 bg-neutral-100 dark:bg-neutral-800/30 py-2 rounded-r-lg;
   }
   .markdown-body pre {
     @apply bg-neutral-100 dark:bg-neutral-950 p-4 rounded-lg overflow-x-auto mb-4 border border-neutral-200 dark:border-neutral-800;
   }
   .markdown-body code {
-    @apply font-mono text-sm bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded text-amber-700 dark:text-amber-200;
+    @apply font-mono text-sm bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded text-blue-700 dark:text-blue-200;
   }
   .markdown-body pre code {
     @apply bg-transparent p-0 text-neutral-800 dark:text-neutral-300;

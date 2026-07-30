@@ -8,6 +8,9 @@ export interface AppNode {
   y: number;
   linkedNodeIds: string[];
   edgeLabels?: Record<string, string>;
+  color?: string;
+  isLocked?: boolean;
+  isPinned?: boolean;
   createdAt: number;
   updatedAt: number;
 }

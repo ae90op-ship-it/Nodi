@@ -11,6 +11,7 @@ import { Whiteboard } from './components/Whiteboard';
 import { SettingsModal } from './components/SettingsModal';
 import { useSettings } from './SettingsContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import type { AppModule } from './types';
 
 export default function App() {
@@ -22,7 +23,7 @@ export default function App() {
 
   const nodes = useLiveQuery(() => db.nodes.toArray(), []) || [];
 
-  const handleAddNode = useCallback(async (type: AppModule) => {
+  const handleAddNode = useCallback(async (type: AppModule = 'note') => {
     try {
       const id = uuidv4();
       const t = settings.language === 'ar';
@@ -63,20 +64,7 @@ export default function App() {
     }
   }, [settings.language]);
 
-  // Global Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        handleAddNode('note'); // quick default
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault(); // auto-save is already handling data
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleAddNode]);
+  useKeyboardShortcuts(() => handleAddNode('note'));
 
   const handleOpenNode = useCallback((id: string) => {
     setActiveNodeId(id);

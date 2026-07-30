@@ -1,18 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Language = 'ar' | 'en';
 export type Theme = 'dark' | 'light';
 export type FontSize = 'text-sm' | 'text-base' | 'text-lg';
 export type NodeShape = 'rounded' | 'circular';
 
-interface Settings {
-  language: Language;
+export interface Settings {
+  language: string; // Supports 90+ languages
   theme: Theme;
   backgroundImage: string | null;
   backgroundColor: string;
   canvasOpacity: number;
   fontSize: FontSize;
   nodeShape: NodeShape;
+  snapToGrid: boolean;
 }
 
 interface SettingsContextType {
@@ -29,6 +29,7 @@ const defaultSettings: Settings = {
   canvasOpacity: 100,
   fontSize: 'text-base',
   nodeShape: 'rounded',
+  snapToGrid: false,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

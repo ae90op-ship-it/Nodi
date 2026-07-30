@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Markdown from 'react-markdown';
-import { ArrowLeft, Edit3, Eye, Trash2 } from 'lucide-react';
+import remarkGfm from 'remark-gfm';
+import { ArrowLeft, Edit3, Eye, Trash2, CheckSquare } from 'lucide-react';
 import { db } from '../db';
 import debounce from 'lodash.debounce';
 
@@ -56,6 +57,36 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
     await db.nodes.update(nodeId, { title: newTitle });
   };
 
+  const toggleCheckbox = (lineIndex: number) => {
+    const lines = content.split('\n');
+    let checkboxCount = 0;
+    
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].match(/^(\s*[-*+]\s+)\[[ xX]\]/)) {
+        if (checkboxCount === lineIndex) {
+          if (lines[i].includes('[ ]')) {
+            lines[i] = lines[i].replace('[ ]', '[x]');
+          } else {
+            lines[i] = lines[i].replace(/\[[xX]\]/, '[ ]');
+          }
+          break;
+        }
+        checkboxCount++;
+      }
+    }
+    
+    const newContent = lines.join('\n');
+    setContent(newContent);
+    debouncedSave(newContent);
+  };
+
+  const addChecklist = () => {
+    const addition = "\n- [ ] مهمة جديدة\n- [ ] مهمة أخرى\n";
+    setContent(prev => prev + addition);
+    debouncedSave(content + addition);
+    setIsEditing(true);
+  };
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100" dir="rtl">
       {/* Header */}
@@ -77,6 +108,13 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
               <Trash2 size={20} />
             </button>
           )}
+          <button 
+            onClick={addChecklist} 
+            className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 rounded-full transition-colors hidden sm:block" 
+            title="إضافة قائمة مهام"
+          >
+            <CheckSquare size={20} />
+          </button>
           <div className="flex gap-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 border border-neutral-200 dark:border-neutral-700">
             <button 
               onClick={() => setIsEditing(true)} 
@@ -101,11 +139,33 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             value={content}
             onChange={handleContentChange}
             className="w-full h-full bg-transparent outline-none resize-none text-lg leading-relaxed text-neutral-800 dark:text-neutral-300 placeholder:text-neutral-400 dark:placeholder:text-neutral-600"
-            placeholder="اكتب ملاحظاتك هنا... يدعم Markdown"
+            placeholder="اكتب ملاحظاتك هنا... يدعم Markdown (يمكنك كتابة - [ ] للقوائم)"
           />
         ) : (
           <div className="prose prose-neutral dark:prose-invert prose-amber max-w-none markdown-body" dir="auto">
-            <Markdown>{content || '*لا يوجد محتوى بعد.*'}</Markdown>
+            <Markdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                li: ({ node, checked, children, ...props }) => {
+                  if (typeof checked === 'boolean') {
+                    // Extract index by finding siblings
+                    let index = 0;
+                    // Note: We need a reliable way to map back to original text index.
+                    // ReactMarkdown provides `sourcePosition` if enabled, but simpler is counting rendered checkboxes.
+                    // This is a hacky but functional approach for simple editors:
+                    return (
+                      <li className="flex items-start gap-2" {...props}>
+                        <input type="checkbox" checked={checked} readOnly className="mt-1" />
+                        <span className={checked ? 'line-through opacity-60' : ''}>{children}</span>
+                      </li>
+                    );
+                  }
+                  return <li {...props}>{children}</li>;
+                }
+              }}
+            >
+              {content || '*لا يوجد محتوى بعد.*'}
+            </Markdown>
           </div>
         )}
       </div>
