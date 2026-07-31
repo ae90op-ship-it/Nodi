@@ -112,7 +112,8 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
     { code: '5002', desc: 'تفعيل تأثير الألوان المتدرجة المتحركة للواجهة (Animated Gradient)' },
     { code: '7001', desc: 'عرض إحصائيات التطبيق (عدد الملاحظات، الصور، الجداول)' },
     { code: '8001', desc: 'كود التجربة الاختبارية: إضافة 5 عقد تجريبية عشوائية' },
-    { code: '9001', desc: 'تفعيل وضع الحماية/القفل الوهمي للواجهة' }
+    { code: '9001', desc: 'تفعيل وضع الحماية/القفل الوهمي للواجهة' },
+    { code: '3600', desc: 'فتح اللعبة المخفية 2D' }
   ];
 
   return (
@@ -127,7 +128,6 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
               {t.title}
             </h2>
           </div>
-          <button className="md:hidden absolute top-4 left-4 p-2 z-10" onClick={onClose}><X size={20}/></button>
           
           <TabButton active={activeTab === 'appearance'} onClick={() => setActiveTab('appearance')} icon={<Palette size={18}/>} label={t.tabs.appearance} />
           <TabButton active={activeTab === 'region'} onClick={() => setActiveTab('region')} icon={<Globe size={18}/>} label={t.tabs.region} />
@@ -138,10 +138,10 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
 
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-y-auto relative">
-          <div className="flex justify-end mb-6">
+          <div className="absolute top-4 left-4 z-20">
             <button onClick={onClose} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-white bg-neutral-200 dark:bg-neutral-800 hover:bg-red-500 dark:hover:bg-red-600 rounded-xl transition-colors shadow-sm">
               <X size={18} />
-              {settings.language === 'ar' ? 'خروج / إغلاق' : 'Close / Exit'}
+              {settings.language === 'ar' ? 'خروج' : 'Exit'}
             </button>
           </div>
 

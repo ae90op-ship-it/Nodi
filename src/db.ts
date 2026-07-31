@@ -20,6 +20,23 @@ export class NibrasDatabase extends Dexie {
       spreadsheets: 'id, updatedAt',
       photos: 'id, updatedAt',
     });
+
+    const triggerSave = () => {
+      window.dispatchEvent(new CustomEvent('dataSaved'));
+    };
+
+    this.nodes.hook('creating', triggerSave);
+    this.nodes.hook('updating', triggerSave);
+    this.calctapes.hook('creating', triggerSave);
+    this.calctapes.hook('updating', triggerSave);
+    this.notes.hook('creating', triggerSave);
+    this.notes.hook('updating', triggerSave);
+    this.whiteboards.hook('creating', triggerSave);
+    this.whiteboards.hook('updating', triggerSave);
+    this.spreadsheets.hook('creating', triggerSave);
+    this.spreadsheets.hook('updating', triggerSave);
+    this.photos.hook('creating', triggerSave);
+    this.photos.hook('updating', triggerSave);
   }
 }
 

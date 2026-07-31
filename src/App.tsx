@@ -11,6 +11,7 @@ import { Whiteboard } from './components/Whiteboard';
 import { SettingsModal } from './components/SettingsModal';
 import { PhotoEditor } from './components/PhotoEditor';
 import { Spreadsheet } from './components/Spreadsheet';
+import { GravityGame } from './components/GravityGame';
 import { useSettings } from './SettingsContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -22,8 +23,24 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isGameOpen, setIsGameOpen] = useState(false);
   const { settings, updateSettings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let timeout: number;
+    const handleSave = () => {
+      setIsSaved(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => setIsSaved(false), 2000) as unknown as number;
+    };
+    window.addEventListener('dataSaved', handleSave);
+    return () => {
+      window.removeEventListener('dataSaved', handleSave);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   const nodes = useLiveQuery(() => db.nodes.toArray(), []) || [];
 
@@ -167,6 +184,10 @@ export default function App() {
       case '3001': // Export Data
         exportData();
         break;
+      case '3600': // Game
+        setIsGameOpen(true);
+        setIsSettingsOpen(false);
+        break;
       case '3002': // Delete all
         try {
           const allNodes = await db.nodes.toArray();
@@ -281,10 +302,15 @@ export default function App() {
           {/* Top Bar */}
           {!isFocusMode && (
             <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start pointer-events-none z-30 fade-in">
-              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur px-5 py-2 md:px-6 md:py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 pointer-events-auto shadow-sm">
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur px-5 py-2 md:px-6 md:py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 pointer-events-auto shadow-sm flex items-center gap-4">
                 <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500">
                   Nibras
                 </h1>
+                {isSaved && (
+                  <span className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded-full animate-fade-in-up">
+                    {settings.language === 'ar' ? 'تم الحفظ' : 'Saved'}
+                  </span>
+                )}
               </div>
               
               <div className="flex gap-2 md:gap-4 pointer-events-auto items-center">
@@ -337,6 +363,8 @@ export default function App() {
       )}
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onSecretCode={handleSecretCode} />
+      
+      {isGameOpen && <GravityGame onClose={() => setIsGameOpen(false)} />}
       
       {isLocked && (
         <div className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center text-white fade-in">

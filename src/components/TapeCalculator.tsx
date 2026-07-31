@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { evaluate } from 'mathjs';
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Keyboard } from 'lucide-react';
 import { db } from '../db';
 import type { TapeLine, CalcTapeData } from '../types';
 import debounce from 'lodash.debounce';
@@ -19,6 +19,7 @@ export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProp
   const [currentExpr, setCurrentExpr] = useState('');
   const [currentComment, setCurrentComment] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -145,15 +146,25 @@ export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProp
       {/* Input Area */}
       <div className="p-4 md:p-6 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row justify-between items-center gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <div className="flex-1 flex flex-col md:flex-row gap-4 w-full">
-          <input 
-            type="text"
-            value={currentExpr}
-            onChange={e => setCurrentExpr(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="مثال: 1200 * 0.15"
-            className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 font-mono outline-none focus:border-blue-500 text-left text-neutral-900 dark:text-white shadow-sm"
-            dir="ltr"
-          />
+          <div className="flex gap-2 flex-1 relative">
+            <input 
+              type="text"
+              ref={inputRef}
+              value={currentExpr}
+              onChange={e => setCurrentExpr(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="مثال: 1200 * 0.15"
+              className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 font-mono outline-none focus:border-blue-500 text-left text-neutral-900 dark:text-white shadow-sm pr-12"
+              dir="ltr"
+            />
+            <button 
+              onClick={() => inputRef.current?.focus()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 md:hidden text-neutral-500 hover:text-blue-500 bg-neutral-100 dark:bg-neutral-800 rounded-lg active:scale-95"
+              title="إظهار لوحة المفاتيح"
+            >
+              <Keyboard size={20} />
+            </button>
+          </div>
           <input 
             type="text"
             value={currentComment}

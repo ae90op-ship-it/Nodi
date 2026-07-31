@@ -5,7 +5,7 @@ import {
   Controls,
   Background,
   useNodesState,
-  useEdgesState,
+  useEdgesState, useOnSelectionChange,
   addEdge,
   Connection,
   Edge,
@@ -23,7 +23,7 @@ import {
   BaseEdge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Search, Trash2, Grid, Copy, Lock, Unlock, Pin, Download, Palette, Link as LinkIcon, Move } from 'lucide-react';
+import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Minimize, Box, Search, Trash2, Grid, Copy, Lock, Unlock, Pin, Download, Palette, Link as LinkIcon, Move } from 'lucide-react';
 import type { AppNode, AppModule } from '../types';
 import { db } from '../db';
 import { useSettings } from '../SettingsContext';
@@ -122,8 +122,18 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
     setLongPressTimer(timer);
   };
 
+  const handleTouchMove = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
   const handleTouchEnd = () => {
-    if (longPressTimer) clearTimeout(longPressTimer);
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
   };
 
   const renderContextMenu = () => (
@@ -181,6 +191,44 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
 
   const [noteContent, setNoteContent] = useState(data.content || '');
 
+  if (data.type === 'group') {
+    return (
+      <div 
+        className={`border-2 border-dashed rounded-3xl transition-all duration-300 relative group
+          ${data.isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
+          ${colorClass || 'border-neutral-300 dark:border-neutral-700 bg-black/5 dark:bg-white/5'}
+          ${selected ? 'ring-2 ring-blue-500' : ''}
+        `}
+        style={{
+          width: data.width || 400,
+          height: data.height || 300,
+          ...customStyle,
+          zIndex: data.isPinned ? 40 : 0
+        }}
+        dir={settings.language === 'ar' ? 'rtl' : 'ltr'}
+        onContextMenu={handleContextMenu}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+      >
+        <div className="absolute top-0 left-0 w-full p-3 flex justify-between items-center bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-t-3xl border-b border-black/10 dark:border-white/10">
+          <span className="font-bold text-sm text-neutral-700 dark:text-neutral-300">{data.title}</span>
+          <button 
+            onClick={async (e) => {
+              e.stopPropagation();
+              await db.nodes.update(data.id, { collapsed: !data.collapsed });
+            }}
+            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+          >
+            {data.collapsed ? <Maximize size={16} /> : <Minimize size={16} />}
+          </button>
+        </div>
+        {showContextMenu && renderContextMenu()}
+      </div>
+    );
+  }
+
   if (data.type === 'quick_note') {
     return (
       <div 
@@ -199,6 +247,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         dir={settings.language === 'ar' ? 'rtl' : 'ltr'}
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
       >
@@ -249,6 +298,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       dir={settings.language === 'ar' ? 'rtl' : 'ltr'}
       onContextMenu={handleContextMenu}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
       title={data.title}
@@ -418,28 +468,37 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
     const isSearchActive = searchQuery.trim().length > 0;
     const lowerQuery = searchQuery.toLowerCase();
     
+    // Determine which groups are collapsed
+    const collapsedGroupIds = new Set(nodes.filter(n => n.type === 'group' && n.collapsed).map(n => n.id));
+
     // Sort so pinned are last (highest z-index effectively in standard render, though we use zIndex style)
     const sortedNodes = [...nodes].sort((a, b) => (a.isPinned === b.isPinned ? 0 : a.isPinned ? 1 : -1));
 
-    return sortedNodes.map(n => ({
-      id: n.id,
-      type: 'custom',
-      position: { x: n.x, y: n.y },
-      draggable: !n.isLocked,
-      data: {
-        ...n,
-        isMatched: isSearchActive && n.title.toLowerCase().includes(lowerQuery),
-        searchActive: isSearchActive,
-        shape: settings.nodeShape,
-        onDelete: () => onDeleteNode(n.id, n.type),
-        onDuplicate: () => handleDuplicate(n),
-        onExport: () => handleExport(n),
-        onToggleLock: async () => await db.nodes.update(n.id, { isLocked: !n.isLocked }),
-        onTogglePin: async () => await db.nodes.update(n.id, { isPinned: !n.isPinned }),
-        onChangeColor: async (color: string) => await db.nodes.update(n.id, { color }),
-        onUpdateContent: async (content: string) => await db.nodes.update(n.id, { content }),
-      },
-    }));
+    return sortedNodes.map(n => {
+      const isHidden = n.parentId ? collapsedGroupIds.has(n.parentId) : false;
+      return {
+        id: n.id,
+        type: 'custom',
+        position: { x: n.x, y: n.y },
+        draggable: !n.isLocked,
+        parentId: n.parentId,
+        hidden: isHidden,
+        style: n.type === 'group' ? { width: n.width || 400, height: n.height || 300, backgroundColor: 'transparent' } : undefined,
+        data: {
+          ...n,
+          isMatched: isSearchActive && n.title.toLowerCase().includes(lowerQuery),
+          searchActive: isSearchActive,
+          shape: settings.nodeShape,
+          onDelete: () => onDeleteNode(n.id, n.type),
+          onDuplicate: () => handleDuplicate(n),
+          onExport: () => handleExport(n),
+          onToggleLock: async () => await db.nodes.update(n.id, { isLocked: !n.isLocked }),
+          onTogglePin: async () => await db.nodes.update(n.id, { isPinned: !n.isPinned }),
+          onChangeColor: async (color: string) => await db.nodes.update(n.id, { color }),
+          onUpdateContent: async (content: string) => await db.nodes.update(n.id, { content }),
+        },
+      };
+    });
   }, [nodes, searchQuery, onDeleteNode, settings.nodeShape, handleDuplicate, handleExport]);
 
   const initialEdges: Edge[] = useMemo(() => {
@@ -463,6 +522,53 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
 
   const [flowNodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
+
+  useOnSelectionChange({
+    onChange: ({ nodes }) => {
+      setSelectedNodes(nodes.map(n => n.id));
+    },
+  });
+
+  const handleGroupNodes = async () => {
+    if (selectedNodes.length < 2) return;
+    
+    // Calculate bounding box of selected nodes
+    const selectedAppNodes = nodes.filter(n => selectedNodes.includes(n.id));
+    const minX = Math.min(...selectedAppNodes.map(n => n.x));
+    const minY = Math.min(...selectedAppNodes.map(n => n.y));
+    const maxX = Math.max(...selectedAppNodes.map(n => n.x + 200)); // approx width
+    const maxY = Math.max(...selectedAppNodes.map(n => n.y + 150)); // approx height
+    
+    const groupId = uuidv4();
+    await db.nodes.add({
+      id: groupId,
+      title: 'مجموعة جديدة (Container)',
+      type: 'group',
+      x: minX - 50,
+      y: minY - 50,
+      width: (maxX - minX) + 100,
+      height: (maxY - minY) + 100,
+      linkedNodeIds: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    
+    // Update children to have parentId
+    for (const nodeId of selectedNodes) {
+      const node = await db.nodes.get(nodeId);
+      if (node && node.type !== 'group') { // dont nest groups for now
+        await db.nodes.update(nodeId, {
+          parentId: groupId,
+          // Calculate relative position to parent if ReactFlow requires it?
+          // ReactFlow requires child node position to be relative to parent if it has parentId!
+          x: node.x - (minX - 50),
+          y: node.y - (minY - 50)
+        });
+      }
+    }
+    setSelectedNodes([]);
+  };
 
   useEffect(() => {
     setNodes(initialNodes);
@@ -520,6 +626,18 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
       >
         <Background variant={BackgroundVariant.Dots} gap={settings.snapToGrid ? 50 : 20} size={2} color={settings.theme === 'dark' ? '#3f3f46' : '#d4d4d8'} />
         
+        {selectedNodes.length > 1 && (
+          <Panel position="top-center" className="flex gap-2 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl mt-4 pointer-events-auto z-50">
+            <button 
+              onClick={handleGroupNodes}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold shadow-md active:scale-95 flex items-center gap-2"
+            >
+              <Box size={18} />
+              {settings.language === 'ar' ? 'تجميع في حاوية' : 'Group in Container'}
+            </button>
+          </Panel>
+        )}
+        
         <Panel position="bottom-right" className="flex gap-2 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl mb-4 mr-4 pointer-events-auto">
           <button onClick={() => zoomOut()} className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-xl transition-colors">
             <ZoomOut size={20} />
@@ -531,6 +649,15 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
             <Maximize size={20} />
           </button>
         </Panel>
+
+        <MiniMap 
+          className="border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-xl"
+          nodeColor={settings.theme === 'dark' ? '#52525b' : '#e4e4e7'}
+          maskColor={settings.theme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'}
+          style={{ bottom: 20, left: 20 }}
+          pannable
+          zoomable
+        />
       </ReactFlow>
     </>
   );

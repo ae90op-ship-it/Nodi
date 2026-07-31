@@ -1,4 +1,4 @@
-export type AppModule = 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet' | 'quick_note';
+export type AppModule = 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet' | 'quick_note' | 'group';
 
 export interface AppNode {
   id: string;
@@ -12,6 +12,10 @@ export interface AppNode {
   isLocked?: boolean;
   isPinned?: boolean;
   content?: string; // For quick_note
+  parentId?: string; // For grouping
+  collapsed?: boolean;
+  width?: number;
+  height?: number;
   createdAt: number;
   updatedAt: number;
 }
