@@ -1,16 +1,19 @@
 import React, { useRef, useState } from 'react';
-import { Settings, X, Image as ImageIcon, Palette, Type, Moon, Sun, Box, AlertTriangle, Globe, Shield, Layout } from 'lucide-react';
+import { Settings, X, Image as ImageIcon, Palette, Type, Moon, Sun, Box, AlertTriangle, Globe, Shield, Layout, Key } from 'lucide-react';
 import { useSettings } from '../SettingsContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSecretCode?: (code: string) => void;
 }
 
-export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalProps) {
   const { settings, updateSettings, resetData } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'appearance' | 'region' | 'typography' | 'data'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'region' | 'typography' | 'data' | 'secrets'>('appearance');
+  const [secretInput, setSecretInput] = useState('');
+  const [showSecretList, setShowSecretList] = useState(false);
 
   if (!isOpen) return null;
 
@@ -25,9 +28,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
+  const handleSecretSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (secretInput === '0000') {
+      setShowSecretList(true);
+    } else {
+      onSecretCode?.(secretInput);
+      setSecretInput('');
+    }
+  };
+
   const t = settings.language === 'ar' ? {
     title: 'الإعدادات المتقدمة',
-    tabs: { appearance: 'المظهر والثيم', region: 'اللغات والموقع', typography: 'الخطوط والعرض', data: 'إدارة البيانات' },
+    tabs: { appearance: 'المظهر والثيم', region: 'اللغات والموقع', typography: 'الخطوط والعرض', data: 'إدارة البيانات', secrets: 'الرموز السرية' },
     language: 'لغة التطبيق',
     theme: 'وضع الإضاءة',
     background: 'لوحة الرسم (Canvas)',
@@ -49,7 +62,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     dangerZone: 'منطقة الخطر',
   } : {
     title: 'Advanced Settings',
-    tabs: { appearance: 'Appearance', region: 'Region', typography: 'Display', data: 'Data & Storage' },
+    tabs: { appearance: 'Appearance', region: 'Region', typography: 'Display', data: 'Data & Storage', secrets: 'Secret Codes' },
     language: 'App Language',
     theme: 'Color Mode',
     background: 'Canvas Background',
@@ -85,6 +98,23 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     { code: 'pt', label: 'Português (Portuguese)', dir: 'ltr' },
   ];
 
+  const secretCodesList = [
+    { code: '1001', desc: 'تفعيل المظهر الداكن الفائق (Dark Mode OLED)' },
+    { code: '1002', desc: 'تغيير خلفية الشبكة إلى نمط النقاط المتقاطعة (Dot Grid)' },
+    { code: '2001', desc: 'إنشاء ملاحظة سريعة جديدة تلقائياً' },
+    { code: '2002', desc: 'فتح محرر الصور مباشرة' },
+    { code: '2003', desc: 'فتح جدول البيانات مباشرة' },
+    { code: '3001', desc: 'تصدير جميع البيانات تلقائياً كملف JSON' },
+    { code: '3002', desc: 'حذف جميع العقد المفتوحة تنظيف سريع للواجهة (Quick Clean)' },
+    { code: '4001', desc: 'تفعيل وضع التركيز (Focus Mode) وإخفاء شريط الأزرار العلوي' },
+    { code: '4002', desc: 'إعادة ضبط أبعاد ومواقع العقد إلى المركز (Reset Graph Layout)' },
+    { code: '5001', desc: 'تغيير لغة التطبيق فوراً بين العربية والإنجليزي' },
+    { code: '5002', desc: 'تفعيل تأثير الألوان المتدرجة المتحركة للواجهة (Animated Gradient)' },
+    { code: '7001', desc: 'عرض إحصائيات التطبيق (عدد الملاحظات، الصور، الجداول)' },
+    { code: '8001', desc: 'كود التجربة الاختبارية: إضافة 5 عقد تجريبية عشوائية' },
+    { code: '9001', desc: 'تفعيل وضع الحماية/القفل الوهمي للواجهة' }
+  ];
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden max-h-[85vh]" dir={settings.language === 'ar' ? 'rtl' : 'ltr'}>
@@ -103,13 +133,17 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <TabButton active={activeTab === 'region'} onClick={() => setActiveTab('region')} icon={<Globe size={18}/>} label={t.tabs.region} />
           <TabButton active={activeTab === 'typography'} onClick={() => setActiveTab('typography')} icon={<Layout size={18}/>} label={t.tabs.typography} />
           <TabButton active={activeTab === 'data'} onClick={() => setActiveTab('data')} icon={<Shield size={18}/>} label={t.tabs.data} />
+          <TabButton active={activeTab === 'secrets'} onClick={() => setActiveTab('secrets')} icon={<Key size={18}/>} label={t.tabs.secrets} />
         </div>
 
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-y-auto relative">
-          <button onClick={onClose} className="hidden md:block absolute top-4 left-4 p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-neutral-800 rounded-full transition-colors z-10">
-            <X size={18} />
-          </button>
+          <div className="flex justify-end mb-6">
+            <button onClick={onClose} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-white bg-neutral-200 dark:bg-neutral-800 hover:bg-red-500 dark:hover:bg-red-600 rounded-xl transition-colors shadow-sm">
+              <X size={18} />
+              {settings.language === 'ar' ? 'خروج / إغلاق' : 'Close / Exit'}
+            </button>
+          </div>
 
           <div className="space-y-8 pb-10 max-w-md mx-auto">
             
@@ -280,6 +314,42 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   </button>
                   <p className="text-xs text-red-500/80 mt-3 text-center">سيتم حذف كافة الملاحظات، السبورات، والحسابات من قاعدة البيانات المحلية بشكل لا رجعة فيه.</p>
                 </div>
+              </div>
+            )}
+
+            {/* Secrets Tab */}
+            {activeTab === 'secrets' && (
+              <div className="space-y-6 fade-in" dir="ltr">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
+                    <Key size={16} /> Access Terminal
+                  </label>
+                  <form onSubmit={handleSecretSubmit} className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={secretInput}
+                      onChange={e => setSecretInput(e.target.value)}
+                      placeholder="Enter access code..."
+                      className="flex-1 bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-mono text-center tracking-widest text-neutral-900 dark:text-white"
+                      maxLength={4}
+                    />
+                    <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold transition-colors">Execute</button>
+                  </form>
+                </div>
+
+                {showSecretList && (
+                  <div className="mt-4 bg-neutral-950 rounded-xl p-4 border border-neutral-800 overflow-y-auto max-h-[40vh] font-mono text-xs text-green-400 shadow-inner">
+                    <h4 className="text-white mb-2 pb-2 border-b border-neutral-800 font-bold">DIRECTORY OF CLASSIFIED DIRECTIVES</h4>
+                    <ul className="space-y-2">
+                      {secretCodesList.map(s => (
+                        <li key={s.code} className="flex gap-4 hover:bg-neutral-900 p-1 rounded transition-colors cursor-pointer" onClick={() => onSecretCode?.(s.code)}>
+                          <span className="text-blue-400">[{s.code}]</span>
+                          <span className="text-neutral-400">{s.desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
           </div>

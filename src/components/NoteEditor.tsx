@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { ArrowLeft, Edit3, Eye, Trash2, CheckSquare } from 'lucide-react';
 import { db } from '../db';
 import debounce from 'lodash.debounce';
+import { useSettings } from '../SettingsContext';
 
 interface NoteEditorProps {
   nodeId: string;
@@ -12,6 +13,7 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
+  const { settings } = useSettings();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("ملاحظة جديدة");
   const [isEditing, setIsEditing] = useState(true);
@@ -59,19 +61,12 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
 
   const toggleCheckbox = (lineIndex: number) => {
     const lines = content.split('\n');
-    let checkboxCount = 0;
     
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].match(/^(\s*[-*+]\s+)\[[ xX]\]/)) {
-        if (checkboxCount === lineIndex) {
-          if (lines[i].includes('[ ]')) {
-            lines[i] = lines[i].replace('[ ]', '[x]');
-          } else {
-            lines[i] = lines[i].replace(/\[[xX]\]/, '[ ]');
-          }
-          break;
-        }
-        checkboxCount++;
+    if (lineIndex >= 0 && lineIndex < lines.length) {
+      if (lines[lineIndex].includes('[ ]')) {
+        lines[lineIndex] = lines[lineIndex].replace('[ ]', '[x]');
+      } else if (lines[lineIndex].includes('[x]') || lines[lineIndex].includes('[X]')) {
+        lines[lineIndex] = lines[lineIndex].replace(/\[[xX]\]/, '[ ]');
       }
     }
     
@@ -88,7 +83,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100" dir="rtl">
+    <div className="flex flex-col h-full bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-neutral-100" dir={settings.language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-4">
@@ -146,16 +141,28 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             <Markdown 
               remarkPlugins={[remarkGfm]}
               components={{
-                li: ({ node, checked, children, ...props }) => {
+                ul: ({ children, ...props }) => {
+                  // Reset counter for each top level render is tricky, but let's assume it renders in order.
+                  // Instead of a global, let's use a simple counter for the current render pass.
+                  return <ul {...props}>{children}</ul>;
+                },
+                li: ({ node, checked, children, ...props }: any) => {
                   if (typeof checked === 'boolean') {
-                    // Extract index by finding siblings
-                    let index = 0;
-                    // Note: We need a reliable way to map back to original text index.
-                    // ReactMarkdown provides `sourcePosition` if enabled, but simpler is counting rendered checkboxes.
-                    // This is a hacky but functional approach for simple editors:
+                    // Extract index based on source position if possible, otherwise rely on a counter strategy.
+                    // To do this simply, we will parse the position from the node if it's available.
+                    // Or, we can use the line number from node.position.start.line
+                    const lineIndex = node?.position?.start?.line ? node.position.start.line - 1 : -1;
+                    
                     return (
                       <li className="flex items-start gap-2" {...props}>
-                        <input type="checkbox" checked={checked} readOnly className="mt-1" />
+                        <input 
+                          type="checkbox" 
+                          checked={checked} 
+                          onChange={() => {
+                            if (lineIndex >= 0) toggleCheckbox(lineIndex);
+                          }}
+                          className="mt-1 cursor-pointer w-4 h-4 accent-blue-500" 
+                        />
                         <span className={checked ? 'line-through opacity-60' : ''}>{children}</span>
                       </li>
                     );

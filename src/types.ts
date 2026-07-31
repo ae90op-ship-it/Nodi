@@ -1,4 +1,4 @@
-export type AppModule = 'whiteboard' | 'calctape' | 'note' | 'drawing';
+export type AppModule = 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet' | 'quick_note';
 
 export interface AppNode {
   id: string;
@@ -11,6 +11,7 @@ export interface AppNode {
   color?: string;
   isLocked?: boolean;
   isPinned?: boolean;
+  content?: string; // For quick_note
   createdAt: number;
   updatedAt: number;
 }
@@ -31,6 +32,36 @@ export interface CalcTapeData {
 export interface NoteData {
   id: string; // matches node id
   content: string;
+  updatedAt: number;
+}
+
+export interface SpreadsheetCell {
+  value: string;
+  isBold?: boolean;
+  isItalic?: boolean;
+  color?: string;
+}
+
+export interface SpreadsheetData {
+  id: string; // matches node id
+  cells: Record<string, SpreadsheetCell>; // e.g. "A1": {value: "10"}
+  updatedAt: number;
+}
+
+export interface PhotoData {
+  id: string;
+  imageUrl?: string; // base64
+  filters?: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    blur: number;
+    grayscale: number;
+    hueRotate: number;
+    sepia: number;
+    invert: number;
+  };
+  rotation?: number;
   updatedAt: number;
 }
 

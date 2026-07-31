@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Plus, PenTool, Calculator, FileText, Image as ImageIcon } from 'lucide-react';
+import { Plus, PenTool, Calculator, FileText, Image as ImageIcon, Table, Camera } from 'lucide-react';
 import { cn } from '../utils';
+import { useSettings } from '../SettingsContext';
 
 interface QuickAddMenuProps {
-  onAdd: (type: 'whiteboard' | 'calctape' | 'note' | 'drawing') => void;
+  onAdd: (type: 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet') => void;
 }
 
 export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-
+  const { settings } = useSettings();
+  const isAr = settings.language === 'ar';
+  
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleSelect = (type: 'whiteboard' | 'calctape' | 'note' | 'drawing') => {
+  const handleSelect = (type: 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet') => {
     onAdd(type);
     setIsOpen(false);
   };
@@ -27,7 +30,7 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
           onClick={() => handleSelect('whiteboard')}
           className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
         >
-          <span className="text-sm whitespace-nowrap" dir="rtl">سبورة التحليل</span>
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'سبورة التحليل' : 'Analysis Board'}</span>
           <div className="bg-blue-500/20 p-2 rounded-full text-blue-400">
             <ImageIcon size={18} />
           </div>
@@ -36,7 +39,7 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
           onClick={() => handleSelect('calctape')}
           className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
         >
-          <span className="text-sm whitespace-nowrap" dir="rtl">آلة حاسبة</span>
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'آلة حاسبة' : 'Tape Calculator'}</span>
           <div className="bg-emerald-500/20 p-2 rounded-full text-emerald-400">
             <Calculator size={18} />
           </div>
@@ -45,7 +48,7 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
           onClick={() => handleSelect('note')}
           className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
         >
-          <span className="text-sm whitespace-nowrap" dir="rtl">ملاحظات</span>
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'ملاحظات' : 'Notes'}</span>
           <div className="bg-amber-500/20 p-2 rounded-full text-amber-400">
             <FileText size={18} />
           </div>
@@ -54,9 +57,27 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
           onClick={() => handleSelect('drawing')}
           className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
         >
-          <span className="text-sm whitespace-nowrap" dir="rtl">رسم سريع</span>
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'رسم سريع' : 'Quick Draw'}</span>
           <div className="bg-purple-500/20 p-2 rounded-full text-purple-400">
             <PenTool size={18} />
+          </div>
+        </button>
+        <button 
+          onClick={() => handleSelect('photo_editor')}
+          className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
+        >
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'محرر الصور' : 'Photo Editor'}</span>
+          <div className="bg-pink-500/20 p-2 rounded-full text-pink-400">
+            <Camera size={18} />
+          </div>
+        </button>
+        <button 
+          onClick={() => handleSelect('spreadsheet')}
+          className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
+        >
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'جدول بيانات' : 'Spreadsheet'}</span>
+          <div className="bg-indigo-500/20 p-2 rounded-full text-indigo-400">
+            <Table size={18} />
           </div>
         </button>
       </div>
