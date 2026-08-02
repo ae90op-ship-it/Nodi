@@ -30,11 +30,13 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
 
   const handleSecretSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (secretInput === '0000') {
+    const normalizedCode = secretInput.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).trim();
+    if (normalizedCode === '0000') {
       setShowSecretList(true);
     } else {
-      onSecretCode?.(secretInput);
+      onSecretCode?.(normalizedCode);
       setSecretInput('');
+      onClose();
     }
   };
 
@@ -156,13 +158,13 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
                   </label>
                   <div className="flex gap-2 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
                     <button
-                      onClick={() => updateSettings({ theme: 'light' })}
+                      onClick={() => updateSettings({ theme: 'light', backgroundColor: '#f5f5f5' })}
                       className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium ${settings.theme === 'light' ? 'bg-white shadow text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
                     >
                       <Sun size={16} /> {t.light}
                     </button>
                     <button
-                      onClick={() => updateSettings({ theme: 'dark' })}
+                      onClick={() => updateSettings({ theme: 'dark', backgroundColor: '#0a0a0a' })}
                       className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium ${settings.theme === 'dark' ? 'bg-neutral-900 shadow text-white' : 'text-neutral-400 hover:text-neutral-200'}`}
                     >
                       <Moon size={16} /> {t.dark}
@@ -342,7 +344,7 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
                     <h4 className="text-white mb-2 pb-2 border-b border-neutral-800 font-bold">DIRECTORY OF CLASSIFIED DIRECTIVES</h4>
                     <ul className="space-y-2">
                       {secretCodesList.map(s => (
-                        <li key={s.code} className="flex gap-4 hover:bg-neutral-900 p-1 rounded transition-colors cursor-pointer" onClick={() => onSecretCode?.(s.code)}>
+                        <li key={s.code} className="flex gap-4 hover:bg-neutral-900 p-1 rounded transition-colors cursor-pointer" onClick={() => { onSecretCode?.(s.code); onClose(); }}>
                           <span className="text-blue-400">[{s.code}]</span>
                           <span className="text-neutral-400">{s.desc}</span>
                         </li>

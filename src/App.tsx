@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Search, Settings as SettingsIcon, Download, Upload, Plus } from 'lucide-react';
+import { Search, Settings as SettingsIcon, Download, Upload, Plus, Clock, ChevronRight, ChevronLeft, Tag } from 'lucide-react';
 import { db } from './db';
 import { GraphView } from './components/GraphView';
 import { QuickAddMenu } from './components/QuickAddMenu';
@@ -25,24 +25,38 @@ export default function App() {
   const [isLocked, setIsLocked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isGameOpen, setIsGameOpen] = useState(false);
+  const [recentNodes, setRecentNodes] = useState<string[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const { settings, updateSettings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const saveTimeoutRef = useRef<number | null>(null);
+
   useEffect(() => {
-    let timeout: number;
     const handleSave = () => {
       setIsSaved(true);
-      clearTimeout(timeout);
-      timeout = setTimeout(() => setIsSaved(false), 2000) as unknown as number;
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current);
+      }
+      saveTimeoutRef.current = window.setTimeout(() => setIsSaved(false), 2000);
     };
     window.addEventListener('dataSaved', handleSave);
     return () => {
       window.removeEventListener('dataSaved', handleSave);
-      clearTimeout(timeout);
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current);
+      }
     };
   }, []);
 
   const nodes = useLiveQuery(() => db.nodes.toArray(), []) || [];
+  
+  const uniqueTags = useMemo(() => {
+    const tags = new Set<string>();
+    nodes.forEach(n => n.tags?.forEach(t => tags.add(t)));
+    return Array.from(tags).sort();
+  }, [nodes]);
 
   const handleAddNode = useCallback(async (type: AppModule = 'note') => {
     try {
@@ -96,6 +110,10 @@ export default function App() {
 
   const handleOpenNode = useCallback((id: string) => {
     setActiveNodeId(id);
+    setRecentNodes(prev => {
+      const filtered = prev.filter(nId => nId !== id);
+      return [id, ...filtered].slice(0, 10);
+    });
   }, []);
 
   const handleUpdateNodePosition = useCallback(async (id: string, x: number, y: number) => {
@@ -152,7 +170,9 @@ export default function App() {
     const calctapes = await db.calctapes.toArray();
     const notes = await db.notes.toArray();
     const whiteboards = await db.whiteboards.toArray();
-    const data = { nodes: allNodes, calctapes, notes, whiteboards };
+    const spreadsheets = await db.spreadsheets.toArray();
+    const photos = await db.photos.toArray();
+    const data = { nodes: allNodes, calctapes, notes, whiteboards, spreadsheets, photos };
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -238,16 +258,20 @@ export default function App() {
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards], async () => {
+        await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos], async () => {
           await db.nodes.clear();
           await db.calctapes.clear();
           await db.notes.clear();
           await db.whiteboards.clear();
+          await db.spreadsheets.clear();
+          await db.photos.clear();
           
           if (data.nodes) await db.nodes.bulkAdd(data.nodes);
           if (data.calctapes) await db.calctapes.bulkAdd(data.calctapes);
           if (data.notes) await db.notes.bulkAdd(data.notes);
           if (data.whiteboards) await db.whiteboards.bulkAdd(data.whiteboards);
+          if (data.spreadsheets) await db.spreadsheets.bulkAdd(data.spreadsheets);
+          if (data.photos) await db.photos.bulkAdd(data.photos);
         });
         alert(settings.language === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!');
       } catch (err) {
@@ -290,67 +314,133 @@ export default function App() {
             <QuickAddMenu onAdd={handleAddNode} />
           </div>
           
+          {/* Recent Nodes Sidebar */}
+          <div className={`absolute top-24 ${settings.language === 'ar' ? 'right-0' : 'left-0'} z-30 flex items-start pointer-events-none transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : settings.language === 'ar' ? 'translate-x-[calc(100%-40px)]' : '-translate-x-[calc(100%-40px)]'}`}>
+            <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-r-2xl shadow-xl w-64 max-h-[60vh] overflow-hidden flex flex-col pointer-events-auto" dir={settings.language === 'ar' ? 'rtl' : 'ltr'} style={{ borderRadius: settings.language === 'ar' ? '1rem 0 0 1rem' : '0 1rem 1rem 0' }}>
+              <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-black/5 dark:bg-white/5">
+                <h3 className="font-bold flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
+                  <Clock size={18} className="text-blue-500" />
+                  {settings.language === 'ar' ? 'السجل الأخير' : 'Recent Nodes'}
+                </h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-2">
+                {recentNodes.length === 0 ? (
+                  <p className="text-neutral-500 dark:text-neutral-400 text-sm text-center py-4">
+                    {settings.language === 'ar' ? 'لا يوجد سجل' : 'No history yet'}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    {recentNodes.map(id => {
+                      const node = nodes.find(n => n.id === id);
+                      if (!node) return null;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => handleOpenNode(id)}
+                          className="text-left w-full p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-sm truncate text-neutral-700 dark:text-neutral-300 transition-colors"
+                        >
+                          {node.title}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-2 shadow-xl pointer-events-auto hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-600 dark:text-neutral-400"
+              style={{ borderRadius: settings.language === 'ar' ? '1rem 0 0 1rem' : '0 1rem 1rem 0' }}
+            >
+              {settings.language === 'ar' ? (isSidebarOpen ? <ChevronRight size={20} /> : <ChevronLeft size={20} />) : (isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />)}
+            </button>
+          </div>
+
           {/* Quick Note FAB */}
           <button 
             onClick={() => handleAddNode('quick_note')}
-            className="absolute bottom-6 right-6 z-30 w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 text-white shadow-xl flex items-center justify-center hover:scale-110 hover:shadow-2xl hover:rotate-3 transition-all active:scale-95"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 text-white shadow-xl flex items-center justify-center hover:scale-110 hover:shadow-2xl hover:rotate-3 transition-all active:scale-95"
             title={settings.language === 'ar' ? 'ملاحظة سريعة' : 'Quick Note'}
           >
             <Plus size={28} />
           </button>
 
-          {/* Top Bar */}
+          {/* Top Bar Area */}
           {!isFocusMode && (
-            <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start pointer-events-none z-30 fade-in">
-              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur px-5 py-2 md:px-6 md:py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 pointer-events-auto shadow-sm flex items-center gap-4">
-                <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500">
-                  Nibras
-                </h1>
-                {isSaved && (
-                  <span className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded-full animate-fade-in-up">
-                    {settings.language === 'ar' ? 'تم الحفظ' : 'Saved'}
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex gap-2 md:gap-4 pointer-events-auto items-center">
-                {/* Import/Export */}
-                <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={importData} />
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
-                  title={settings.language === 'ar' ? 'استيراد نسخة احتياطية' : 'Import Backup'}
-                >
-                  <Upload size={20} />
-                </button>
-                <button 
-                  onClick={exportData}
-                  className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
-                  title={settings.language === 'ar' ? 'تصدير نسخة احتياطية' : 'Export Backup'}
-                >
-                  <Download size={20} />
-                </button>
-
-                {/* Search Bar */}
-                <div className="relative group hidden sm:block">
-                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={18} />
-                  <input 
-                    type="text"
-                    placeholder={settings.language === 'ar' ? 'البحث عن عقدة...' : 'Search nodes...'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-blue-500/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
-                  />
+            <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex flex-col gap-4 pointer-events-none z-30 fade-in">
+              <div className="flex justify-between items-start w-full">
+                <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur px-5 py-2 md:px-6 md:py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 pointer-events-auto shadow-sm flex items-center gap-4">
+                  <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500">
+                    Nibras
+                  </h1>
+                  {isSaved && (
+                    <span className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded-full animate-fade-in-up">
+                      {settings.language === 'ar' ? 'تم الحفظ' : 'Saved'}
+                    </span>
+                  )}
                 </div>
+                
+                <div className="flex gap-2 md:gap-4 pointer-events-auto items-center">
+                  {/* Import/Export */}
+                  <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={importData} />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    title={settings.language === 'ar' ? 'استيراد نسخة احتياطية' : 'Import Backup'}
+                  >
+                    <Upload size={20} />
+                  </button>
+                  <button 
+                    onClick={exportData}
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    title={settings.language === 'ar' ? 'تصدير نسخة احتياطية' : 'Export Backup'}
+                  >
+                    <Download size={20} />
+                  </button>
 
-                {/* Settings Button */}
-                <button 
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
-                >
-                  <SettingsIcon size={22} />
-                </button>
+                  {/* Search Bar */}
+                  <div className="relative group hidden sm:block">
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={18} />
+                    <input 
+                      type="text"
+                      placeholder={settings.language === 'ar' ? 'البحث عن عقدة...' : 'Search nodes...'}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-blue-500/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
+                    />
+                  </div>
+
+                  {/* Settings Button */}
+                  <button 
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                  >
+                    <SettingsIcon size={22} />
+                  </button>
+                </div>
               </div>
+
+              {/* Tag Filters */}
+              {uniqueTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 items-center pointer-events-auto">
+                  <Tag size={16} className="text-neutral-500 mr-1" />
+                  {uniqueTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        if (searchQuery === tag) {
+                          setSearchQuery('');
+                        } else {
+                          setSearchQuery(tag);
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors shadow-sm ${searchQuery === tag ? 'bg-blue-500 text-white border-blue-500' : 'bg-white/80 dark:bg-neutral-900/80 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'}`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

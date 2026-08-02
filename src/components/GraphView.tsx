@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -23,7 +22,7 @@ import {
   BaseEdge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Minimize, Box, Search, Trash2, Grid, Copy, Lock, Unlock, Pin, Download, Palette, Link as LinkIcon, Move } from 'lucide-react';
+import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Minimize, Box, Search, Trash2, Grid, Copy, Lock, Unlock, Pin, Download, Palette, Link as LinkIcon, Move, Tag } from 'lucide-react';
 import type { AppNode, AppModule } from '../types';
 import { db } from '../db';
 import { useSettings } from '../SettingsContext';
@@ -48,6 +47,7 @@ type CustomNodeData = AppNode & {
   onExport?: () => void;
   onChangeColor?: (color: string) => void;
   onUpdateContent?: (content: string) => void;
+  onUpdateTags?: (tags: string[]) => void;
   onConnectStart?: () => void;
 } & Record<string, unknown>;
 
@@ -181,6 +181,26 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         <button className="flex items-center gap-2 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left" onClick={() => { data.onExport?.(); setShowContextMenu(false); }}>
           <Download size={14} /> تصدير البيانات
         </button>
+        <div className="px-2 py-1 flex items-center gap-2">
+          <Tag size={14} className="text-neutral-500" />
+          <input 
+            type="text" 
+            placeholder="Tags (comma separated)"
+            defaultValue={(data.tags || []).join(', ')}
+            onBlur={(e) => {
+              const val = e.target.value.trim();
+              const newTags = val ? val.split(',').map(t => t.trim()).filter(Boolean) : [];
+              data.onUpdateTags?.(newTags);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.currentTarget.blur();
+                setShowContextMenu(false);
+              }
+            }}
+            className="w-full text-xs bg-transparent border-b border-neutral-300 dark:border-neutral-600 focus:outline-none focus:border-blue-500 placeholder-neutral-400"
+          />
+        </div>
         <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-1" />
         <button className="flex items-center gap-2 p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-left" onClick={() => { data.onDelete?.(); setShowContextMenu(false); }}>
           <Trash2 size={14} /> حذف نهائي
@@ -254,7 +274,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
         {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
 
-        <Handle type="target" position={Position.Top} className="w-3 h-3 opacity-0" isConnectable={!data.isLocked} />
+        <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
         
         <div 
           className="h-10 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-center px-6 font-bold custom-drag-handle"
@@ -274,7 +294,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           />
         </div>
 
-        <Handle type="source" position={Position.Bottom} className="w-3 h-3 opacity-0" isConnectable={!data.isLocked} />
+        <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
         
         {showContextMenu && renderContextMenu()}
       </div>
@@ -310,6 +330,15 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       <Handle type="target" position={Position.Top} className={`w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors ${isCircular ? 'top-[-4px]' : ''}`} isConnectable={!data.isLocked} />
       <Icon size={isCircular ? 24 : 20} />
       <span className={`font-semibold whitespace-nowrap ${isCircular ? 'text-xs truncate w-full text-center' : 'text-sm'}`}>{data.title}</span>
+      {data.tags && data.tags.length > 0 && !isCircular && (
+        <div className="flex gap-1 overflow-hidden absolute -bottom-2 right-2 max-w-full">
+          {data.tags.map(tag => (
+            <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-blue-500 text-white rounded-full truncate max-w-[60px]">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
       <Handle type="source" position={Position.Bottom} className={`w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors ${isCircular ? 'bottom-[-4px]' : ''}`} isConnectable={!data.isLocked} />
 
       {showContextMenu && renderContextMenu()}
@@ -486,7 +515,7 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
         style: n.type === 'group' ? { width: n.width || 400, height: n.height || 300, backgroundColor: 'transparent' } : undefined,
         data: {
           ...n,
-          isMatched: isSearchActive && n.title.toLowerCase().includes(lowerQuery),
+          isMatched: isSearchActive && (n.title.toLowerCase().includes(lowerQuery) || (n.tags || []).some(tag => tag.toLowerCase().includes(lowerQuery))),
           searchActive: isSearchActive,
           shape: settings.nodeShape,
           onDelete: () => onDeleteNode(n.id, n.type),
@@ -496,6 +525,7 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
           onTogglePin: async () => await db.nodes.update(n.id, { isPinned: !n.isPinned }),
           onChangeColor: async (color: string) => await db.nodes.update(n.id, { color }),
           onUpdateContent: async (content: string) => await db.nodes.update(n.id, { content }),
+          onUpdateTags: async (tags: string[]) => await db.nodes.update(n.id, { tags }),
         },
       };
     });
@@ -637,27 +667,6 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
             </button>
           </Panel>
         )}
-        
-        <Panel position="bottom-right" className="flex gap-2 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl mb-4 mr-4 pointer-events-auto">
-          <button onClick={() => zoomOut()} className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-xl transition-colors">
-            <ZoomOut size={20} />
-          </button>
-          <button onClick={() => zoomIn()} className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-xl transition-colors">
-            <ZoomIn size={20} />
-          </button>
-          <button onClick={() => fitView({ duration: 800 })} className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-xl transition-colors">
-            <Maximize size={20} />
-          </button>
-        </Panel>
-
-        <MiniMap 
-          className="border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-xl"
-          nodeColor={settings.theme === 'dark' ? '#52525b' : '#e4e4e7'}
-          maskColor={settings.theme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'}
-          style={{ bottom: 20, left: 20 }}
-          pannable
-          zoomable
-        />
       </ReactFlow>
     </>
   );

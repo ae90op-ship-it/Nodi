@@ -16,6 +16,7 @@ export interface AppNode {
   collapsed?: boolean;
   width?: number;
   height?: number;
+  tags?: string[];
   createdAt: number;
   updatedAt: number;
 }

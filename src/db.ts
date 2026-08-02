@@ -12,8 +12,8 @@ export class NibrasDatabase extends Dexie {
   constructor() {
     super('NibrasDB');
     // Define schema
-    this.version(2).stores({
-      nodes: 'id, title, type, createdAt, updatedAt',
+    this.version(3).stores({
+      nodes: 'id, title, type, *tags, createdAt, updatedAt',
       calctapes: 'id, updatedAt',
       notes: 'id, updatedAt',
       whiteboards: 'id, updatedAt',

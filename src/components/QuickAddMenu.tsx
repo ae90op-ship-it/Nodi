@@ -20,10 +20,11 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div className={`fixed bottom-6 ${isAr ? 'right-6' : 'left-6'} z-50`}>
       {/* Menu Items */}
       <div className={cn(
-        "absolute bottom-16 left-0 flex flex-col-reverse gap-3 transition-all duration-300 origin-bottom",
+        "absolute bottom-16 flex flex-col gap-3 transition-all duration-300 origin-bottom",
+        isAr ? "right-0 items-end" : "left-0 items-start",
         isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"
       )}>
         <button 
