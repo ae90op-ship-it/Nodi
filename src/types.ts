@@ -1,4 +1,4 @@
-export type AppModule = 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet' | 'quick_note' | 'group';
+export type AppModule = 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet' | 'quick_note' | 'group' | 'voice_note' | 'media';
 
 export interface AppNode {
   id: string;

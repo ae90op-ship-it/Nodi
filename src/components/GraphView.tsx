@@ -53,6 +53,51 @@ type CustomNodeData = AppNode & {
 
 const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
 
+function MediaNodeContent({ nodeId, mimeType, name }: { nodeId: string, mimeType?: string, name?: string }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let url = '';
+    let isMounted = true;
+    
+    db.files.get(nodeId).then(file => {
+      if (isMounted && file && file.blob) {
+        url = URL.createObjectURL(file.blob);
+        setBlobUrl(url);
+      } else if (isMounted && !file) {
+        setError('File not found in storage');
+      }
+    }).catch(err => {
+      if (isMounted) setError('Failed to load media');
+    });
+    
+    return () => {
+      isMounted = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [nodeId]);
+
+  if (error) return <div className="p-4 text-red-500 text-xs text-center w-full">{error}</div>;
+  if (!blobUrl) return <div className="p-4 text-neutral-500 text-xs text-center w-full animate-pulse">Loading media...</div>;
+
+  if (mimeType?.startsWith('image/')) {
+    return <img src={blobUrl} alt={name || 'image'} className="w-full h-full object-contain pointer-events-none" loading="lazy" />;
+  } else if (mimeType?.startsWith('video/')) {
+    return <video src={blobUrl} controls preload="none" className="w-full h-full object-contain max-h-[300px]" />;
+  } else if (mimeType?.startsWith('audio/')) {
+    return <div className="p-4 flex items-center justify-center bg-white/50 dark:bg-black/20 w-full"><audio src={blobUrl} controls preload="none" className="w-full max-w-[200px]" /></div>;
+  } else {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-4 gap-2 text-center bg-white/50 dark:bg-black/20 w-full">
+        <FileText size={24} className="text-neutral-500" />
+        <span className="text-xs truncate w-full max-w-[150px]">{name || 'Unknown File'}</span>
+        <a href={blobUrl} download={name || 'file'} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full mt-2 hover:bg-blue-600 transition-colors pointer-events-auto">Download</a>
+      </div>
+    );
+  }
+}
+
 const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>) => {
   const { settings } = useSettings();
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -244,6 +289,46 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
             {data.collapsed ? <Maximize size={16} /> : <Minimize size={16} />}
           </button>
         </div>
+        {showContextMenu && renderContextMenu()}
+      </div>
+    );
+  }
+
+  if (data.type === 'media' || data.type === 'voice_note') {
+    return (
+      <div 
+        className={`shadow-2xl border flex flex-col transition-all duration-300 relative group
+          ${data.isLocked ? 'cursor-not-allowed' : 'cursor-default'}
+          w-64 h-auto min-h-[100px] rounded-xl overflow-hidden
+          ${colorClass}
+          ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+          ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
+          ${selected ? 'ring-2 ring-blue-500' : ''}
+        `}
+        style={{
+          ...customStyle,
+          zIndex: data.isPinned ? 50 : 1
+        }}
+        dir={settings.language === 'ar' ? 'rtl' : 'ltr'}
+        onContextMenu={handleContextMenu}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+      >
+        {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
+        {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
+        
+        <div className="flex-1 flex flex-col items-center justify-center relative pointer-events-none">
+          <MediaNodeContent nodeId={data.id} mimeType={data.mimeType as string} name={data.title} />
+        </div>
+
+        {/* Handles */}
+        <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
+        <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
+        <Handle type="source" position={Position.Left} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
+        <Handle type="source" position={Position.Right} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
+        
         {showContextMenu && renderContextMenu()}
       </div>
     );

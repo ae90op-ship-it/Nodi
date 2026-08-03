@@ -15,6 +15,7 @@ import { GravityGame } from './components/GravityGame';
 import { useSettings } from './SettingsContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { VoiceRecorderOverlay } from './components/VoiceRecorderOverlay';
 import type { AppModule } from './types';
 
 export default function App() {
@@ -28,11 +29,90 @@ export default function App() {
   const [recentNodes, setRecentNodes] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [inlineNote, setInlineNote] = useState('');
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
   const { settings, updateSettings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaFileInputRef = useRef<HTMLInputElement>(null);
 
   const saveTimeoutRef = useRef<number | null>(null);
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const id = uuidv4();
+      const title = file.name;
+      const x = Math.random() * 100 - 50;
+      const y = Math.random() * 100 - 50;
+
+      await db.transaction('rw', [db.nodes, db.files], async () => {
+        await db.nodes.add({
+          id,
+          title,
+          type: 'media',
+          x,
+          y,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          isLocked: true,
+          isPinned: false,
+          linkedNodeIds: [],
+        });
+        await db.files.add({
+          id,
+          blob: file,
+          mimeType: file.type,
+          name: file.name,
+          updatedAt: Date.now(),
+        });
+      });
+      setRecentNodes(prev => [id, ...prev].slice(0, 10));
+    } catch (err) {
+      console.error('Failed to upload media', err);
+    }
+    
+    if (mediaFileInputRef.current) {
+      mediaFileInputRef.current.value = '';
+    }
+  };
+
+  const handleVoiceNoteSave = async (blob: Blob) => {
+    setShowVoiceRecorder(false);
+    try {
+      const id = uuidv4();
+      const t = settings.language === 'ar';
+      const title = t ? 'ملاحظة صوتية' : 'Voice Note';
+      const x = Math.random() * 100 - 50;
+      const y = Math.random() * 100 - 50;
+
+      await db.transaction('rw', [db.nodes, db.files], async () => {
+        await db.nodes.add({
+          id,
+          title,
+          type: 'voice_note',
+          x,
+          y,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          isLocked: true,
+          isPinned: false,
+          linkedNodeIds: [],
+        });
+        await db.files.add({
+          id,
+          blob,
+          mimeType: 'audio/webm',
+          name: title,
+          updatedAt: Date.now(),
+        });
+      });
+      setRecentNodes(prev => [id, ...prev].slice(0, 10));
+    } catch (err) {
+      console.error('Failed to save voice note', err);
+    }
+  };
 
   const handleInlineNoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,9 +429,28 @@ export default function App() {
             />
           </div>
           <div className="z-20 relative">
-            <QuickAddMenu onAdd={handleAddNode} />
+            <QuickAddMenu 
+              onAdd={handleAddNode} 
+              onRecordAudio={() => setShowVoiceRecorder(true)}
+              onUploadMedia={() => mediaFileInputRef.current?.click()}
+            />
           </div>
           
+          <input 
+            type="file" 
+            ref={mediaFileInputRef} 
+            className="hidden" 
+            onChange={handleMediaUpload} 
+            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+          />
+
+          {showVoiceRecorder && (
+            <VoiceRecorderOverlay 
+              onSave={handleVoiceNoteSave} 
+              onCancel={() => setShowVoiceRecorder(false)} 
+            />
+          )}
+
           {/* Recent Nodes Sidebar */}
           <div className={`absolute top-24 ${settings.language === 'ar' ? 'right-0' : 'left-0'} z-30 flex items-start pointer-events-none transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : settings.language === 'ar' ? 'translate-x-[calc(100%-40px)]' : '-translate-x-[calc(100%-40px)]'}`}>
             <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-r-2xl shadow-xl w-64 max-h-[60vh] overflow-hidden flex flex-col pointer-events-auto" dir={settings.language === 'ar' ? 'rtl' : 'ltr'} style={{ borderRadius: settings.language === 'ar' ? '1rem 0 0 1rem' : '0 1rem 1rem 0' }}>

@@ -1,20 +1,23 @@
-import React, { useState } from 'react';
-import { Plus, PenTool, Calculator, FileText, Image as ImageIcon, Table, Camera } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Plus, PenTool, Calculator, FileText, Image as ImageIcon, Table, Camera, Mic, Upload, Zap } from 'lucide-react';
 import { cn } from '../utils';
 import { useSettings } from '../SettingsContext';
+import { AppModule } from '../types';
 
 interface QuickAddMenuProps {
-  onAdd: (type: 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet') => void;
+  onAdd: (type: AppModule, extraData?: any) => void;
+  onRecordAudio?: () => void;
+  onUploadMedia?: () => void;
 }
 
-export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
+export function QuickAddMenu({ onAdd, onRecordAudio, onUploadMedia }: QuickAddMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { settings } = useSettings();
   const isAr = settings.language === 'ar';
   
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleSelect = (type: 'whiteboard' | 'calctape' | 'note' | 'drawing' | 'photo_editor' | 'spreadsheet') => {
+  const handleSelect = (type: AppModule) => {
     onAdd(type);
     setIsOpen(false);
   };
@@ -27,6 +30,33 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
         isAr ? "right-0 items-end" : "left-0 items-start",
         isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"
       )}>
+        <button 
+          onClick={() => { setIsOpen(false); onUploadMedia?.(); }}
+          className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
+        >
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'رفع وسائط (ملف/صورة/فيديو)' : 'Upload Media'}</span>
+          <div className="bg-orange-500/20 p-2 rounded-full text-orange-400">
+            <Upload size={18} />
+          </div>
+        </button>
+        <button 
+          onClick={() => { setIsOpen(false); onRecordAudio?.(); }}
+          className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
+        >
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'ملاحظة صوتية' : 'Voice Note'}</span>
+          <div className="bg-red-500/20 p-2 rounded-full text-red-400">
+            <Mic size={18} />
+          </div>
+        </button>
+        <button 
+          onClick={() => handleSelect('quick_note')}
+          className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
+        >
+          <span className="text-sm whitespace-nowrap" dir={isAr ? 'rtl' : 'ltr'}>{isAr ? 'ملاحظة سريعة' : 'Quick Note'}</span>
+          <div className="bg-yellow-500/20 p-2 rounded-full text-yellow-400">
+            <Zap size={18} />
+          </div>
+        </button>
         <button 
           onClick={() => handleSelect('whiteboard')}
           className="flex items-center gap-3 bg-neutral-800 text-white rounded-full pl-4 pr-3 py-2 shadow-lg hover:bg-neutral-700 border border-neutral-700"
@@ -86,7 +116,7 @@ export function QuickAddMenu({ onAdd }: QuickAddMenuProps) {
       {/* Main FAB */}
       <button 
         onClick={toggleMenu}
-        className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-xl hover:bg-blue-500 transition-transform active:scale-95 z-50 relative"
+        className="w-14 h-14 bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white shadow-xl hover:scale-110 hover:shadow-2xl transition-all duration-300 active:scale-95 z-50 relative"
       >
         <Plus size={28} className={cn("transition-transform duration-300", isOpen && "rotate-45")} />
       </button>
