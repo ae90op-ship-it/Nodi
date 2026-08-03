@@ -22,7 +22,7 @@ import {
   BaseEdge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Minimize, Box, Search, Trash2, Grid, Copy, Lock, Unlock, Pin, Download, Palette, Link as LinkIcon, Move, Tag } from 'lucide-react';
+import { Eye, EyeOff, PenTool, Calculator, FileText, Image as ImageIcon, ZoomIn, ZoomOut, Maximize, Minimize, Box, Search, Trash2, Grid, Copy, Lock, Unlock, Pin, Download, Palette, Link as LinkIcon, Move, Tag } from 'lucide-react';
 import type { AppNode, AppModule } from '../types';
 import { db } from '../db';
 import { useSettings } from '../SettingsContext';
@@ -43,6 +43,7 @@ type CustomNodeData = AppNode & {
   onDelete?: () => void;
   onDuplicate?: () => void;
   onToggleLock?: () => void;
+  onToggleReadOnly?: () => void;
   onTogglePin?: () => void;
   onExport?: () => void;
   onChangeColor?: (color: string) => void;
@@ -214,7 +215,11 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       <div className="flex flex-col p-1">
          <button className="flex items-center gap-2 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left" onClick={() => { data.onToggleLock?.(); setShowContextMenu(false); }}>
           {data.isLocked ? <Unlock size={14} /> : <Lock size={14} />}
-          {data.isLocked ? 'فك القفل' : 'قفل العقدة'}
+          {data.isLocked ? 'فك قفل التحريك' : 'قفل التحريك'}
+        </button>
+        <button className="flex items-center gap-2 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left" onClick={() => { data.onToggleReadOnly?.(); setShowContextMenu(false); }}>
+          {data.isReadOnly ? <Eye size={14} /> : <EyeOff size={14} />}
+          {data.isReadOnly ? 'إلغاء القراءة فقط' : 'قراءة فقط'}
         </button>
         <button className="flex items-center gap-2 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left" onClick={() => { data.onTogglePin?.(); setShowContextMenu(false); }}>
           <Pin size={14} />
@@ -318,6 +323,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       >
         {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
         {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
+        {data.isReadOnly && <Eye size={14} className="absolute top-1 left-6 text-amber-500 z-10 drop-shadow-md" />}
         
         <div className="flex-1 flex flex-col items-center justify-center relative pointer-events-none">
           <MediaNodeContent nodeId={data.id} mimeType={data.mimeType as string} name={data.title} />
@@ -358,6 +364,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       >
         {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
         {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
+        {data.isReadOnly && <Eye size={14} className="absolute top-1 left-6 text-amber-500 z-10 drop-shadow-md" />}
 
         <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
         
@@ -411,6 +418,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       {/* Visual Pins & Locks */}
       {data.isPinned && <Pin size={12} className="absolute top-[-6px] right-[-6px] text-blue-500 drop-shadow-md" fill="currentColor" />}
       {data.isLocked && <Lock size={12} className="absolute bottom-[-6px] left-[-6px] text-red-500 drop-shadow-md" />}
+      {data.isReadOnly && <Eye size={12} className="absolute bottom-[-6px] left-[10px] text-amber-500 drop-shadow-md" />}
 
       <Handle type="target" position={Position.Top} className={`w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors ${isCircular ? 'top-[-4px]' : ''}`} isConnectable={!data.isLocked} />
       <Icon size={isCircular ? 24 : 20} />
@@ -607,6 +615,7 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
           onDuplicate: () => handleDuplicate(n),
           onExport: () => handleExport(n),
           onToggleLock: async () => await db.nodes.update(n.id, { isLocked: !n.isLocked }),
+          onToggleReadOnly: async () => await db.nodes.update(n.id, { isReadOnly: !n.isReadOnly }),
           onTogglePin: async () => await db.nodes.update(n.id, { isPinned: !n.isPinned }),
           onChangeColor: async (color: string) => await db.nodes.update(n.id, { color }),
           onUpdateContent: async (content: string) => await db.nodes.update(n.id, { content }),

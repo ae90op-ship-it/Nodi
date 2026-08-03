@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import fs from 'fs';
+
+const content = `import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -73,7 +75,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
 
   // Excerpt generation
   const updateExcerpt = async (text: string) => {
-    const excerpt = text.substring(0, 50).replace(/\n/g, ' ') + (text.length > 50 ? '...' : '');
+    const excerpt = text.substring(0, 50).replace(/\\n/g, ' ') + (text.length > 50 ? '...' : '');
     await db.nodes.update(nodeId, { excerpt });
   };
 
@@ -274,7 +276,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${title}.${ext}`;
+    a.download = \`\${title}.\${ext}\`;
     a.click();
     URL.revokeObjectURL(url);
     setShowExport(false);
@@ -289,7 +291,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
   };
 
   // Stats
-  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+  const wordCount = content.trim() ? content.trim().split(/\\s+/).length : 0;
   const charCount = content.length;
   const readTime = Math.ceil(wordCount / 200) || 1; // 200 words per minute
 
@@ -314,9 +316,9 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
   }
 
   return (
-    <div className={`absolute inset-0 z-50 bg-white dark:bg-neutral-900 flex flex-col fade-in ${isFullscreen ? 'fixed inset-0 z-[200]' : ''}`} dir={isAr ? 'rtl' : 'ltr'}>
+    <div className={\`absolute inset-0 z-50 bg-white dark:bg-neutral-900 flex flex-col fade-in \${isFullscreen ? 'fixed inset-0 z-[200]' : ''}\`} dir={isAr ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0" style={{ backgroundColor: node?.color ? `${node.color}20` : 'transparent' }}>
+      <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0" style={{ backgroundColor: node?.color ? \`\${node.color}20\` : 'transparent' }}>
         <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button onClick={onClose} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors shrink-0">
             <ArrowLeft size={20} className={isAr ? 'rotate-180' : ''} />
@@ -356,11 +358,11 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             <History size={18} />
           </button>
 
-          <button onClick={togglePin} className={`p-2 rounded-full ${node?.isPinned ? 'bg-blue-100 text-blue-500 dark:bg-blue-900/50' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500'}`}>
+          <button onClick={togglePin} className={\`p-2 rounded-full \${node?.isPinned ? 'bg-blue-100 text-blue-500 dark:bg-blue-900/50' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500'}\`}>
             <Pin size={18} fill={node?.isPinned ? "currentColor" : "none"} />
           </button>
           
-          <button onClick={toggleReadOnly} className={`p-2 rounded-full ${node?.isReadOnly ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/50' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500'}`}>
+          <button onClick={toggleReadOnly} className={\`p-2 rounded-full \${node?.isReadOnly ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/50' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500'}\`}>
             {node?.isReadOnly ? <Eye size={18} /> : <Eye size={18} />}
           </button>
 
@@ -398,7 +400,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
       {/* Toolbar */}
       {!node?.isReadOnly && (
         <div className="flex items-center gap-1 p-2 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800 overflow-x-auto shrink-0 scrollbar-hide">
-          <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shrink-0 ${!isEditing ? 'bg-blue-500 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700'}`}>
+          <button onClick={() => setIsEditing(!isEditing)} className={\`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shrink-0 \${!isEditing ? 'bg-blue-500 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700'}\`}>
             {isEditing ? <Eye size={16} /> : <Edit3 size={16} />}
             {isAr ? (isEditing ? 'معاينة' : 'تعديل') : (isEditing ? 'Preview' : 'Edit')}
           </button>
@@ -409,10 +411,10 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
           <button onClick={() => insertFormatting('- ')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><List size={16} /></button>
           <button onClick={() => insertFormatting('1. ')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><ListOrdered size={16} /></button>
           <button onClick={() => insertFormatting('> ')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Quote size={16} /></button>
-          <button onClick={() => insertFormatting('```\n', '\n```')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Code size={16} /></button>
+          <button onClick={() => insertFormatting('\`\`\`\\n', '\\n\`\`\`')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Code size={16} /></button>
           
           <div className="w-px h-6 bg-neutral-300 dark:bg-neutral-700 mx-2 shrink-0" />
-          <button onClick={toggleSpeechRecognition} className={`p-1.5 rounded-md flex items-center gap-1 shrink-0 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400'}`}>
+          <button onClick={toggleSpeechRecognition} className={\`p-1.5 rounded-md flex items-center gap-1 shrink-0 \${isRecording ? 'bg-red-500 text-white animate-pulse' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400'}\`}>
             {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
             <span className="text-xs">{isRecording ? (isAr ? 'إيقاف' : 'Stop') : (isAr ? 'إملاء' : 'Dictate')}</span>
           </button>
@@ -482,3 +484,6 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
     </div>
   );
 }
+`
+fs.writeFileSync('src/components/NoteEditor.tsx', content);
+console.log("NoteEditor generated");

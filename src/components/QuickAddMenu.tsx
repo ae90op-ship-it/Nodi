@@ -129,12 +129,14 @@ export const QuickAddMenu = memo(({ onAdd, onRecordAudio, onUploadMedia }: Quick
     <>
       {/* Main FAB */}
       <div className={`fixed bottom-6 ${isAr ? 'right-6' : 'left-6'} z-[110]`}>
+        {!isOpen && (
         <button 
           onClick={toggleMenu}
           className="w-14 h-14 bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white shadow-xl hover:scale-110 hover:shadow-2xl transition-all duration-300 active:scale-95 relative"
         >
-          <Plus size={28} className={cn("transition-transform duration-300", isOpen && "rotate-45")} />
+          <Plus size={28} className="transition-transform duration-300" />
         </button>
+      )}
       </div>
 
       {/* Backdrop */}
@@ -155,7 +157,7 @@ export const QuickAddMenu = memo(({ onAdd, onRecordAudio, onUploadMedia }: Quick
         )}
         dir={isAr ? 'rtl' : 'ltr'}
       >
-        <div className="flex flex-col h-full max-h-[85vh]">
+        <div className="flex flex-col h-full max-h-[75vh] overflow-y-auto">
           {/* Header & Drag Handle */}
           <div className="flex flex-col items-center pt-4 pb-2 px-6 border-b border-neutral-100 dark:border-neutral-800">
             <div className="w-12 h-1.5 bg-neutral-300 dark:bg-neutral-700 rounded-full mb-4" />

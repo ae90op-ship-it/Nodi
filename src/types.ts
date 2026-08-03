@@ -17,6 +17,8 @@ export interface AppNode {
   width?: number;
   height?: number;
   tags?: string[];
+  isReadOnly?: boolean;
+  excerpt?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -34,10 +36,18 @@ export interface CalcTapeData {
   updatedAt: number;
 }
 
+export interface NoteVersion {
+  timestamp: number;
+  content: string;
+}
+
 export interface NoteData {
   id: string; // matches node id
   content: string;
   updatedAt: number;
+  versions?: NoteVersion[];
+  pinCode?: string;
+  attachments?: { id: string, name: string, type: 'voice' | 'file', blob?: Blob }[];
 }
 
 export interface SpreadsheetCell {

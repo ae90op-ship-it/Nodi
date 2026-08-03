@@ -59,8 +59,11 @@ export default function App() {
         }
       }
 
-      const x = options?.x ?? (Math.random() * 200 - 100);
-      const y = options?.y ?? (Math.random() * 200 - 100);
+      const existingNodes = await db.nodes.toArray();
+      const nodeCount = existingNodes.length;
+      const offset = (nodeCount % 10) * 20; // prevent exact collision
+      const x = options?.x ?? ((Math.random() * 200 - 100) + offset);
+      const y = options?.y ?? ((Math.random() * 200 - 100) + offset);
 
       await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos, db.files], async () => {
         await db.nodes.add({
@@ -183,11 +186,7 @@ export default function App() {
   const nodes = useLiveQuery(() => db.nodes.toArray(), []) || [];
   const deferredSearchQuery = useDeferredValue(searchQuery);
   
-  const uniqueTags = useMemo(() => {
-    const tags = new Set<string>();
-    nodes.forEach(n => n.tags?.forEach(t => tags.add(t)));
-    return Array.from(tags).sort();
-  }, [nodes]);
+  
 
   const handleAddNode = useCallback(async (type: AppModule = 'note') => {
     const id = await createNodeFactory(type);
@@ -353,6 +352,10 @@ export default function App() {
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
+        if (!data || !data.nodes) {
+          alert(settings.language === 'ar' ? 'ملف النسخة الاحتياطية غير صالح' : 'Invalid backup file');
+          return;
+        }
         await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos], async () => {
           await db.nodes.clear();
           await db.calctapes.clear();
@@ -539,27 +542,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Tag Filters */}
-              {uniqueTags.length > 0 && (
-                <div className="flex flex-wrap gap-2 items-center pointer-events-auto">
-                  <Tag size={16} className="text-neutral-500 mr-1" />
-                  {uniqueTags.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => {
-                        if (searchQuery === tag) {
-                          setSearchQuery('');
-                        } else {
-                          setSearchQuery(tag);
-                        }
-                      }}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors shadow-sm ${searchQuery === tag ? 'bg-blue-500 text-white border-blue-500' : 'bg-white/80 dark:bg-neutral-900/80 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'}`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              )}
+              
             </div>
           )}
         </div>
