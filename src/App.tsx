@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useDeferredValue } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Search, Settings as SettingsIcon, Download, Upload, Plus, Clock, ChevronRight, ChevronLeft, Tag } from 'lucide-react';
@@ -37,119 +37,130 @@ export default function App() {
 
   const saveTimeoutRef = useRef<number | null>(null);
 
-  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+  const createNodeFactory = useCallback(async (type: AppModule, options?: { title?: string; x?: number; y?: number; blob?: Blob; mimeType?: string; name?: string; content?: string }) => {
+    try {
+      const id = uuidv4();
+      const t = settings.language === 'ar';
+      
+      let title = options?.title;
+      if (!title) {
+        title = t ? 'عقدة جديدة' : 'New Node';
+        switch (type) {
+          case 'whiteboard': title = t ? 'سبورة تحليل' : 'Analysis Board'; break;
+          case 'calctape': title = t ? 'آلة حاسبة' : 'Tape Calc'; break;
+          case 'note': title = t ? 'ملاحظة' : 'Note'; break;
+          case 'quick_note': title = t ? 'ملاحظة سريعة' : 'Quick Note'; break;
+          case 'drawing': title = t ? 'رسم سريع' : 'Quick Draw'; break;
+          case 'photo_editor': title = t ? 'محرر صور' : 'Photo Editor'; break;
+          case 'spreadsheet': title = t ? 'جدول بيانات' : 'Spreadsheet'; break;
+          case 'voice_note': title = t ? 'ملاحظة صوتية' : 'Voice Note'; break;
+          case 'media': title = options?.name || (t ? 'ملف' : 'File'); break;
+        }
+      }
+
+      const x = options?.x ?? (Math.random() * 200 - 100);
+      const y = options?.y ?? (Math.random() * 200 - 100);
+
+      await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos, db.files], async () => {
+        await db.nodes.add({
+          id,
+          title,
+          type,
+          x,
+          y,
+          linkedNodeIds: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          isLocked: type === 'media' || type === 'voice_note',
+          isPinned: false,
+        });
+
+        switch (type) {
+          case 'calctape':
+            await db.calctapes.add({ id, lines: [], updatedAt: Date.now() });
+            break;
+          case 'note':
+          case 'quick_note':
+            await db.notes.add({ id, content: options?.content || '', updatedAt: Date.now() });
+            break;
+          case 'whiteboard':
+          case 'drawing':
+            await db.whiteboards.add({ id, elements: [], updatedAt: Date.now() });
+            break;
+          case 'spreadsheet':
+            await db.spreadsheets.add({ id, cells: {}, updatedAt: Date.now() });
+            break;
+          case 'photo_editor':
+            await db.photos.add({ id, updatedAt: Date.now() });
+            break;
+          case 'voice_note':
+          case 'media':
+            if (options?.blob) {
+              await db.files.add({
+                id,
+                blob: options.blob,
+                mimeType: options.mimeType || 'application/octet-stream',
+                name: options.name || title,
+                updatedAt: Date.now(),
+              });
+            }
+            break;
+        }
+      });
+      
+      setRecentNodes(prev => [id, ...prev].slice(0, 10));
+      return id;
+    } catch (error) {
+      console.error("Failed to create node:", error);
+      alert(settings.language === 'ar' ? 'حدث خطأ أثناء إنشاء العقدة.' : 'Error creating node.');
+      return null;
+    }
+  }, [settings.language]);
+
+  const handleMediaUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      const id = uuidv4();
-      const title = file.name;
-      const x = Math.random() * 100 - 50;
-      const y = Math.random() * 100 - 50;
-
-      await db.transaction('rw', [db.nodes, db.files], async () => {
-        await db.nodes.add({
-          id,
-          title,
-          type: 'media',
-          x,
-          y,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          isLocked: true,
-          isPinned: false,
-          linkedNodeIds: [],
-        });
-        await db.files.add({
-          id,
-          blob: file,
-          mimeType: file.type,
-          name: file.name,
-          updatedAt: Date.now(),
-        });
-      });
-      setRecentNodes(prev => [id, ...prev].slice(0, 10));
-    } catch (err) {
-      console.error('Failed to upload media', err);
-    }
+    const allowedTypes = ['image/', 'video/', 'audio/', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'];
+    const isAllowed = allowedTypes.some(type => file.type.startsWith(type) || file.type === type);
     
+    if (!isAllowed) {
+       alert(settings.language === 'ar' ? 'صيغة الملف غير مدعومة' : 'Unsupported file format');
+       return;
+    }
+
+    await createNodeFactory('media', {
+      title: file.name,
+      blob: file,
+      mimeType: file.type,
+      name: file.name
+    });
+
     if (mediaFileInputRef.current) {
       mediaFileInputRef.current.value = '';
     }
-  };
+  }, [createNodeFactory, settings.language]);
 
-  const handleVoiceNoteSave = async (blob: Blob) => {
+  const handleVoiceNoteSave = useCallback(async (blob: Blob) => {
     setShowVoiceRecorder(false);
-    try {
-      const id = uuidv4();
-      const t = settings.language === 'ar';
-      const title = t ? 'ملاحظة صوتية' : 'Voice Note';
-      const x = Math.random() * 100 - 50;
-      const y = Math.random() * 100 - 50;
+    await createNodeFactory('voice_note', {
+      blob,
+      mimeType: 'audio/webm'
+    });
+  }, [createNodeFactory]);
 
-      await db.transaction('rw', [db.nodes, db.files], async () => {
-        await db.nodes.add({
-          id,
-          title,
-          type: 'voice_note',
-          x,
-          y,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          isLocked: true,
-          isPinned: false,
-          linkedNodeIds: [],
-        });
-        await db.files.add({
-          id,
-          blob,
-          mimeType: 'audio/webm',
-          name: title,
-          updatedAt: Date.now(),
-        });
-      });
-      setRecentNodes(prev => [id, ...prev].slice(0, 10));
-    } catch (err) {
-      console.error('Failed to save voice note', err);
-    }
-  };
-
-  const handleInlineNoteSubmit = async (e: React.FormEvent) => {
+  const handleInlineNoteSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inlineNote.trim()) return;
     
-    try {
-      const id = uuidv4();
-      const t = settings.language === 'ar';
-      const title = t ? 'ملاحظة سريعة' : 'Quick Note';
-      const x = Math.random() * 100 - 50;
-      const y = -150; // Top area
+    await createNodeFactory('quick_note', {
+      content: inlineNote.trim(),
+      y: -150
+    });
+    setInlineNote('');
+  }, [inlineNote, createNodeFactory]);
 
-      await db.transaction('rw', [db.nodes, db.notes], async () => {
-        await db.nodes.add({
-          id,
-          title,
-          type: 'quick_note',
-          x,
-          y,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          isLocked: false,
-          isPinned: false,
-          linkedNodeIds: [],
-        });
-        await db.notes.add({
-          id,
-          content: inlineNote.trim(),
-          updatedAt: Date.now(),
-        });
-      });
-      setInlineNote('');
-      setRecentNodes(prev => [id, ...prev].slice(0, 10));
-    } catch (e) {
-      console.error('Failed to add inline note', e);
-    }
-  };
 
   useEffect(() => {
     const handleSave = () => {
@@ -164,11 +175,13 @@ export default function App() {
       window.removeEventListener('dataSaved', handleSave);
       if (saveTimeoutRef.current) {
         window.clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
       }
     };
   }, []);
 
   const nodes = useLiveQuery(() => db.nodes.toArray(), []) || [];
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   
   const uniqueTags = useMemo(() => {
     const tags = new Set<string>();
@@ -177,52 +190,9 @@ export default function App() {
   }, [nodes]);
 
   const handleAddNode = useCallback(async (type: AppModule = 'note') => {
-    try {
-      const id = uuidv4();
-      const t = settings.language === 'ar';
-      let title = t ? 'عقدة جديدة' : 'New Node';
-      if (type === 'whiteboard') title = t ? 'سبورة تحليل' : 'Analysis Board';
-      if (type === 'calctape') title = t ? 'آلة حاسبة' : 'Tape Calc';
-      if (type === 'note') title = t ? 'ملاحظة' : 'Note';
-      if (type === 'quick_note') title = t ? 'ملاحظة سريعة' : 'Quick Note';
-      if (type === 'drawing') title = t ? 'رسم سريع' : 'Quick Draw';
-      if (type === 'photo_editor') title = t ? 'محرر صور' : 'Photo Editor';
-      if (type === 'spreadsheet') title = t ? 'جدول بيانات' : 'Spreadsheet';
-
-      const x = Math.random() * 200 - 100;
-      const y = Math.random() * 200 - 100;
-
-      await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos], async () => {
-        await db.nodes.add({
-          id,
-          title,
-          type,
-          x,
-          y,
-          linkedNodeIds: [],
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
-
-        if (type === 'calctape') {
-          await db.calctapes.add({ id, lines: [], updatedAt: Date.now() });
-        } else if (type === 'note' || type === 'quick_note') {
-          await db.notes.add({ id, content: '', updatedAt: Date.now() });
-        } else if (type === 'whiteboard' || type === 'drawing') {
-          await db.whiteboards.add({ id, elements: [], updatedAt: Date.now() });
-        } else if (type === 'spreadsheet') {
-          await db.spreadsheets.add({ id, cells: {}, updatedAt: Date.now() });
-        } else if (type === 'photo_editor') {
-          await db.photos.add({ id, updatedAt: Date.now() });
-        }
-      });
-
-      setActiveNodeId(id);
-    } catch (error) {
-      console.error("Failed to add node transaction:", error);
-      alert(settings.language === 'ar' ? 'حدث خطأ أثناء إنشاء العقدة.' : 'Error creating node.');
-    }
-  }, [settings.language]);
+    const id = await createNodeFactory(type);
+    if (id) setActiveNodeId(id);
+  }, [createNodeFactory]);
 
   useKeyboardShortcuts(() => handleAddNode('note'));
 
@@ -242,11 +212,18 @@ export default function App() {
     try {
       await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos], async () => {
         await db.nodes.delete(id);
-        if (type === 'calctape') await db.calctapes.delete(id);
-        else if (type === 'note' || type === 'quick_note') await db.notes.delete(id);
-        else if (type === 'whiteboard' || type === 'drawing') await db.whiteboards.delete(id);
-        else if (type === 'spreadsheet') await db.spreadsheets.delete(id);
-        else if (type === 'photo_editor') await db.photos.delete(id);
+        switch (type) {
+          case 'calctape': await db.calctapes.delete(id); break;
+          case 'note':
+          case 'quick_note': await db.notes.delete(id); break;
+          case 'whiteboard':
+          case 'drawing': await db.whiteboards.delete(id); break;
+          case 'spreadsheet': await db.spreadsheets.delete(id); break;
+          case 'photo_editor': await db.photos.delete(id); break;
+          case 'voice_note':
+          case 'media': await db.files.delete(id); break;
+          default: break;
+        }
       });
       if (activeNodeId === id) {
         setActiveNodeId(null);
@@ -425,7 +402,7 @@ export default function App() {
               onOpenNode={handleOpenNode} 
               onUpdateNodePosition={handleUpdateNodePosition}
               onDeleteNode={handleDeleteNode}
-              searchQuery={searchQuery}
+              searchQuery={deferredSearchQuery}
             />
           </div>
           <div className="z-20 relative">
@@ -594,9 +571,9 @@ export default function App() {
         </div>
       )}
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onSecretCode={handleSecretCode} />
+      <ErrorBoundary><SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onSecretCode={handleSecretCode} /></ErrorBoundary>
       
-      {isGameOpen && <GravityGame onClose={() => setIsGameOpen(false)} />}
+      {isGameOpen && <ErrorBoundary><GravityGame onClose={() => setIsGameOpen(false)} /></ErrorBoundary>}
       
       {isLocked && (
         <div className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center text-white fade-in">

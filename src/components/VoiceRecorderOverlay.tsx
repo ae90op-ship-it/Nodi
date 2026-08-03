@@ -54,7 +54,7 @@ export function VoiceRecorderOverlay({ onSave, onCancel }: VoiceRecorderOverlayP
 
     } catch (err) {
       console.error("Error accessing microphone:", err);
-      alert("Could not access microphone.");
+      alert(settings.language === 'ar' ? 'حدث خطأ في الوصول إلى الميكروفون. يرجى التحقق من الصلاحيات.' : 'Could not access microphone. Please check permissions.');
       onCancel();
     }
   };
