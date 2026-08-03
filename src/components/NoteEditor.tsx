@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowLeft, Edit3, Eye, Trash2, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Edit3, Eye, Trash2, CheckSquare, Wand2, Tag } from 'lucide-react';
 import { db } from '../db';
 import debounce from 'lodash.debounce';
 import { useSettings } from '../SettingsContext';
@@ -17,11 +17,16 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("ملاحظة جديدة");
   const [isEditing, setIsEditing] = useState(true);
+  const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       const node = await db.nodes.get(nodeId);
-      if (node) setTitle(node.title);
+      if (node) {
+        setTitle(node.title);
+        setTags(node.tags || []);
+      }
       const data = await db.notes.get(nodeId);
       if (data) {
         setContent(data.content);
@@ -30,6 +35,33 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
     };
     loadData();
   }, [nodeId]);
+
+  const generateTags = async () => {
+    if (!content.trim() || isGeneratingTags) return;
+    setIsGeneratingTags(true);
+    try {
+      const response = await fetch('/api/gemini/tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.tags && Array.isArray(data.tags)) {
+          const newTags = Array.from(new Set([...tags, ...data.tags]));
+          setTags(newTags);
+          await db.nodes.update(nodeId, { tags: newTags });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to generate tags:', e);
+    } finally {
+      setIsGeneratingTags(false);
+    }
+  };
+
 
   const debouncedSave = useRef(
     debounce(async (newContent: string) => {
@@ -98,6 +130,24 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
           />
         </div>
         <div className="flex gap-4 items-center">
+          {tags.length > 0 && (
+            <div className="hidden md:flex gap-1 items-center">
+              <Tag size={14} className="text-neutral-400" />
+              {tags.map(tag => (
+                <span key={tag} className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          <button 
+            onClick={generateTags}
+            disabled={isGeneratingTags}
+            className={`p-2 rounded-full transition-colors hidden sm:block ${isGeneratingTags ? 'text-blue-400 animate-pulse' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400'}`}
+            title="اقتراح وسوم بذكاء اصطناعي"
+          >
+            <Wand2 size={20} />
+          </button>
           {onDelete && (
             <button onClick={onDelete} className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 rounded-full transition-colors" title="حذف">
               <Trash2 size={20} />

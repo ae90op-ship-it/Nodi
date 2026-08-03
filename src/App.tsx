@@ -27,11 +27,49 @@ export default function App() {
   const [isGameOpen, setIsGameOpen] = useState(false);
   const [recentNodes, setRecentNodes] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [inlineNote, setInlineNote] = useState('');
 
   const { settings, updateSettings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const saveTimeoutRef = useRef<number | null>(null);
+
+  const handleInlineNoteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlineNote.trim()) return;
+    
+    try {
+      const id = uuidv4();
+      const t = settings.language === 'ar';
+      const title = t ? 'ملاحظة سريعة' : 'Quick Note';
+      const x = Math.random() * 100 - 50;
+      const y = -150; // Top area
+
+      await db.transaction('rw', [db.nodes, db.notes], async () => {
+        await db.nodes.add({
+          id,
+          title,
+          type: 'quick_note',
+          x,
+          y,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          isLocked: false,
+          isPinned: false,
+          linkedNodeIds: [],
+        });
+        await db.notes.add({
+          id,
+          content: inlineNote.trim(),
+          updatedAt: Date.now(),
+        });
+      });
+      setInlineNote('');
+      setRecentNodes(prev => [id, ...prev].slice(0, 10));
+    } catch (e) {
+      console.error('Failed to add inline note', e);
+    }
+  };
 
   useEffect(() => {
     const handleSave = () => {
@@ -356,15 +394,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Quick Note FAB */}
-          <button 
-            onClick={() => handleAddNode('quick_note')}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 text-white shadow-xl flex items-center justify-center hover:scale-110 hover:shadow-2xl hover:rotate-3 transition-all active:scale-95"
-            title={settings.language === 'ar' ? 'ملاحظة سريعة' : 'Quick Note'}
-          >
-            <Plus size={28} />
-          </button>
-
           {/* Top Bar Area */}
           {!isFocusMode && (
             <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex flex-col gap-4 pointer-events-none z-30 fade-in">
@@ -380,6 +409,20 @@ export default function App() {
                   )}
                 </div>
                 
+                {/* Inline Quick Note Form */}
+                <form 
+                  onSubmit={handleInlineNoteSubmit} 
+                  className="hidden md:flex flex-1 max-w-md mx-4 pointer-events-auto"
+                >
+                  <input 
+                    type="text" 
+                    value={inlineNote}
+                    onChange={e => setInlineNote(e.target.value)}
+                    placeholder={settings.language === 'ar' ? 'اكتب ملاحظة سريعة ثم اضغط Enter...' : 'Type a quick note & press Enter...'}
+                    className="w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 px-4 outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm placeholder:text-neutral-400"
+                  />
+                </form>
+
                 <div className="flex gap-2 md:gap-4 pointer-events-auto items-center">
                   {/* Import/Export */}
                   <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={importData} />
