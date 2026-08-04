@@ -99,7 +99,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
       
       setIsSaving(false);
       setSaveStatus(isAr ? 'تم الحفظ' : 'Saved');
-      setTimeout(() => setSaveStatus(''), 2000);
+      setTimeout(() => { if (isMounted.current) setSaveStatus(''); }, 2000);
     }, 1000)
   ).current;
 
@@ -182,7 +182,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
   const copyContent = () => {
     navigator.clipboard.writeText(content);
     setSaveStatus(isAr ? 'تم النسخ' : 'Copied');
-    setTimeout(() => setSaveStatus(''), 2000);
+    setTimeout(() => { if (isMounted.current) setSaveStatus(''); }, 2000);
   };
 
   // Feature: Formatting Toolbar
@@ -303,11 +303,11 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
           value={pinInput}
           onChange={e => setPinInput(e.target.value)}
           placeholder="PIN"
-          className="px-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent text-center mb-4 tracking-widest text-lg focus:outline-none focus:border-accent"
+          className="px-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-transparent text-center mb-4 tracking-widest text-lg focus:outline-none focus:border-blue-500"
         />
         <div className="flex gap-4">
           <button onClick={onClose} className="px-4 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl">{isAr ? 'إغلاق' : 'Close'}</button>
-          <button onClick={unlockNote} className="px-4 py-2 bg-accent text-white rounded-xl">{isAr ? 'فتح' : 'Unlock'}</button>
+          <button onClick={unlockNote} className="px-4 py-2 bg-blue-500 text-white rounded-xl">{isAr ? 'فتح' : 'Unlock'}</button>
         </div>
       </div>
     );
@@ -326,7 +326,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             value={title}
             onChange={handleTitleChange}
             disabled={node?.isReadOnly}
-            className="font-bold text-lg md:text-xl bg-transparent outline-none border-b-2 border-transparent focus:border-accent transition-colors w-full min-w-0"
+            className="font-bold text-lg md:text-xl bg-transparent outline-none border-b-2 border-transparent focus:border-blue-500 transition-colors w-full min-w-0"
           />
         </div>
         
@@ -356,7 +356,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             <History size={18} />
           </button>
 
-          <button onClick={togglePin} className={`p-2 rounded-full transition-colors ${node?.isPinned ? "bg-accent text-white dark:bg-accent" : "bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100"}`}>
+          <button onClick={togglePin} className={`p-2 rounded-full transition-colors ${node?.isPinned ? "bg-blue-500 text-white dark:bg-blue-600" : "bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100"}`}>
             <Pin size={18} fill={node?.isPinned ? "currentColor" : "none"} />
           </button>
           
@@ -398,7 +398,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
       {/* Toolbar */}
       {!node?.isReadOnly && (
         <div className="flex items-center gap-1 p-2 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800 overflow-x-auto shrink-0 scrollbar-hide">
-          <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shrink-0 ${!isEditing ? 'bg-accent text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700'}`}>
+          <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shrink-0 ${!isEditing ? 'bg-blue-500 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700'}`}>
             {isEditing ? <Eye size={16} /> : <Edit3 size={16} />}
             {isAr ? (isEditing ? 'معاينة' : 'تعديل') : (isEditing ? 'Preview' : 'Edit')}
           </button>
@@ -452,7 +452,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
                 <button 
                   key={v.timestamp}
                   onClick={() => restoreVersion(v.content)}
-                  className="p-3 bg-white dark:bg-neutral-800 rounded-lg text-left shadow-sm border border-neutral-200 dark:border-neutral-700 hover:border-accent transition-colors"
+                  className="p-3 bg-white dark:bg-neutral-800 rounded-lg text-left shadow-sm border border-neutral-200 dark:border-neutral-700 hover:border-blue-500 transition-colors"
                 >
                   <div className="text-xs text-neutral-500 mb-1">{new Date(v.timestamp).toLocaleString(isAr ? 'ar' : 'en')}</div>
                   <div className="text-sm truncate text-neutral-700 dark:text-neutral-300">{v.content.substring(0, 30) || '...'}</div>

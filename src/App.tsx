@@ -61,9 +61,14 @@ export default function App() {
 
       const existingNodes = await db.nodes.toArray();
       const nodeCount = existingNodes.length;
-      const offset = (nodeCount % 10) * 20; // prevent exact collision
-      const x = options?.x ?? ((Math.random() * 200 - 100) + offset);
-      const y = options?.y ?? ((Math.random() * 200 - 100) + offset);
+      // Better grid distribution to prevent overlapping
+      const gridCols = 5;
+      const spacingX = 350;
+      const spacingY = 250;
+      const calcX = (nodeCount % gridCols) * spacingX - (gridCols * spacingX) / 2 + spacingX / 2;
+      const calcY = Math.floor(nodeCount / gridCols) * spacingY - spacingY / 2;
+      const x = options?.x ?? calcX;
+      const y = options?.y ?? calcY;
 
       await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos, db.files], async () => {
         await db.nodes.add({
@@ -126,7 +131,8 @@ export default function App() {
     if (!file) return;
 
     const allowedTypes = ['image/', 'video/', 'audio/', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'];
-    const isAllowed = allowedTypes.some(type => file.type.startsWith(type) || file.type === type);
+    const fileType = file.type || 'application/octet-stream';
+    const isAllowed = allowedTypes.some(type => fileType.startsWith(type) || fileType === type) || fileType === 'application/octet-stream';
     
     if (!isAllowed) {
        alert(settings.language === 'ar' ? 'صيغة الملف غير مدعومة' : 'Unsupported file format');
@@ -136,7 +142,7 @@ export default function App() {
     await createNodeFactory('media', {
       title: file.name,
       blob: file,
-      mimeType: file.type,
+      mimeType: fileType,
       name: file.name
     });
 
@@ -227,6 +233,7 @@ export default function App() {
       if (activeNodeId === id) {
         setActiveNodeId(null);
       }
+      setRecentNodes(prev => prev.filter(nId => nId !== id));
     } catch (e) {
       console.error("Failed to delete node:", e);
     }
@@ -269,11 +276,14 @@ export default function App() {
     const data = { nodes: allNodes, calctapes, notes, whiteboards, spreadsheets, photos };
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'nibras-backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'nibras-backup.json';
+      a.click();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleSecretCode = useCallback(async (code: string) => {
@@ -309,7 +319,10 @@ export default function App() {
           for (const n of allNodes) {
             await handleDeleteNode(n.id, n.type);
           }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+      console.error(e);
+      alert(settings.language === 'ar' ? 'فشل حذف العقدة من قاعدة البيانات' : 'Failed to delete node from database');
+    }
         break;
       case '4001': // Focus Mode
         setIsFocusMode(prev => !prev);
@@ -437,7 +450,7 @@ export default function App() {
             <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-r-2xl shadow-xl w-64 max-h-[60vh] overflow-hidden flex flex-col pointer-events-auto" dir={settings.language === 'ar' ? 'rtl' : 'ltr'} style={{ borderRadius: settings.language === 'ar' ? '1rem 0 0 1rem' : '0 1rem 1rem 0' }}>
               <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-black/5 dark:bg-white/5">
                 <h3 className="font-bold flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-                  <Clock size={18} className="text-accent" />
+                  <Clock size={18} className="text-blue-500" />
                   {settings.language === 'ar' ? 'السجل الأخير' : 'Recent Nodes'}
                 </h3>
               </div>
@@ -499,7 +512,7 @@ export default function App() {
                     value={inlineNote}
                     onChange={e => setInlineNote(e.target.value)}
                     placeholder={settings.language === 'ar' ? 'اكتب ملاحظة سريعة ثم اضغط Enter...' : 'Type a quick note & press Enter...'}
-                    className="w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 px-4 outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 transition-all shadow-sm placeholder:text-neutral-400"
+                    className="w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 px-4 outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm placeholder:text-neutral-400"
                   />
                 </form>
 
@@ -508,14 +521,14 @@ export default function App() {
                   <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={importData} />
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-accent dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
                     title={settings.language === 'ar' ? 'استيراد نسخة احتياطية' : 'Import Backup'}
                   >
                     <Upload size={20} />
                   </button>
                   <button 
                     onClick={exportData}
-                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-accent dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
                     title={settings.language === 'ar' ? 'تصدير نسخة احتياطية' : 'Export Backup'}
                   >
                     <Download size={20} />
@@ -523,20 +536,20 @@ export default function App() {
 
                   {/* Search Bar */}
                   <div className="relative group hidden sm:block">
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-accent dark:group-focus-within:text-accent transition-colors" size={18} />
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={18} />
                     <input 
                       type="text"
                       placeholder={settings.language === 'ar' ? 'البحث عن عقدة...' : 'Search nodes...'}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-accent/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
+                      className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-blue-500/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
                     />
                   </div>
 
                   {/* Settings Button */}
                   <button 
                     onClick={() => setIsSettingsOpen(true)}
-                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-accent dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
                   >
                     <SettingsIcon size={22} />
                   </button>
@@ -549,7 +562,7 @@ export default function App() {
         </div>
       ) : (
         <div className="w-full h-full bg-white dark:bg-neutral-900 overflow-hidden fade-in z-40 relative">
-          <ErrorBoundary>
+          <ErrorBoundary onReset={() => setActiveNodeId(null)}>
             {renderContent()}
           </ErrorBoundary>
         </div>
@@ -569,7 +582,7 @@ export default function App() {
           <input 
             type="password" 
             placeholder="****"
-            className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 w-48 text-center text-2xl tracking-widest outline-none focus:border-accent transition-colors"
+            className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 w-48 text-center text-2xl tracking-widest outline-none focus:border-blue-500 transition-colors"
             onChange={(e) => {
               if(e.target.value === '9001') setIsLocked(false);
             }}

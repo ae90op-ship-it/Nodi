@@ -1,9 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: var(--accent-color, #3b82f6);
-  --color-accent-hover: color-mix(in srgb, var(--accent-color, #3b82f6) 80%, black);
-  --color-accent-light: color-mix(in srgb, var(--accent-color, #3b82f6) 20%, transparent);
   --color-neutral-850: #1f1f1f;
 }
 
@@ -50,7 +47,7 @@ li:has(> input[type="checkbox"]:checked) {
   @apply line-through opacity-60 transition-all duration-300;
 }
 input[type="checkbox"] {
-  @apply cursor-pointer accent-accent w-4 h-4 rounded-sm border-2 border-neutral-400 dark:border-neutral-600;
+  @apply cursor-pointer accent-blue-500 w-4 h-4 rounded-sm border-2 border-neutral-400 dark:border-neutral-600;
 }
 
 @layer utilities {
@@ -76,18 +73,45 @@ input[type="checkbox"] {
     @apply mb-1;
   }
   .markdown-body a {
-    @apply text-accent dark:text-accent hover:underline;
+    @apply text-blue-600 dark:text-blue-400 hover:underline;
   }
   .markdown-body blockquote {
-    @apply border-l-4 border-accent/50 pl-4 italic text-neutral-600 dark:text-neutral-400 my-4 bg-neutral-100 dark:bg-neutral-800/30 py-2 rounded-r-lg;
+    @apply border-l-4 border-blue-500/50 pl-4 italic text-neutral-600 dark:text-neutral-400 my-4 bg-neutral-100 dark:bg-neutral-800/30 py-2 rounded-r-lg;
   }
   .markdown-body pre {
     @apply bg-neutral-100 dark:bg-neutral-950 p-4 rounded-lg overflow-x-auto mb-4 border border-neutral-200 dark:border-neutral-800;
   }
   .markdown-body code {
-    @apply font-mono text-sm bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded text-accent dark:text-blue-200;
+    @apply font-mono text-sm bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded text-blue-700 dark:text-blue-200;
   }
   .markdown-body pre code {
     @apply bg-transparent p-0 text-neutral-800 dark:text-neutral-300;
   }
+}
+
+
+.react-flow__handle {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.react-flow__handle::after {
+  content: '';
+  position: absolute;
+  top: -15px;
+  bottom: -15px;
+  left: -15px;
+  right: -15px;
+  background: transparent;
+}
+
+
+body.dragging-node * {
+  pointer-events: none !important;
+}
+body.dragging-node .react-flow, 
+body.dragging-node .react-flow *,
+body.dragging-node .react-flow__handle,
+body.dragging-node .react-flow__node {
+  pointer-events: auto !important;
 }

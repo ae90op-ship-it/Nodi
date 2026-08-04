@@ -125,11 +125,15 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
         
         {/* Sidebar Tabs */}
         <div className="w-full md:w-64 bg-neutral-50 dark:bg-neutral-950 border-b md:border-b-0 md:border-l md:border-neutral-200 dark:border-neutral-800 flex flex-row md:flex-col p-4 gap-2 overflow-x-auto md:overflow-y-auto shrink-0">
-          <div className="hidden md:flex items-center justify-between mb-4 px-2">
+          <div className="flex items-center justify-between mb-4 px-2 flex-wrap gap-2">
             <h2 className="text-xl font-bold flex items-center gap-2 text-neutral-900 dark:text-white">
-              <Settings size={22} className="text-blue-500" />
+              <Settings size={22} className="text-accent" />
               {t.title}
             </h2>
+            <button onClick={onClose} className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:text-white bg-neutral-200 dark:bg-neutral-800 hover:bg-red-500 dark:hover:bg-red-600 rounded-lg transition-colors shadow-sm">
+              <X size={16} />
+              {settings.language === 'ar' ? 'خروج' : 'Exit'}
+            </button>
           </div>
           
           <TabButton active={activeTab === 'appearance'} onClick={() => setActiveTab('appearance')} icon={<Palette size={18}/>} label={t.tabs.appearance} />
@@ -141,12 +145,7 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
 
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-y-auto relative">
-          <div className="absolute top-4 left-4 z-20">
-            <button onClick={onClose} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-white bg-neutral-200 dark:bg-neutral-800 hover:bg-red-500 dark:hover:bg-red-600 rounded-xl transition-colors shadow-sm">
-              <X size={18} />
-              {settings.language === 'ar' ? 'خروج' : 'Exit'}
-            </button>
-          </div>
+          
 
           <div className="space-y-8 pb-10 max-w-md mx-auto">
             

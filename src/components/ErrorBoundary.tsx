@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
+  onReset?: () => void;
   children?: ReactNode;
 }
 
@@ -36,7 +37,11 @@ export class ErrorBoundary extends Component<Props, State> {
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
-              window.location.reload();
+              if (this.props.onReset) {
+                this.props.onReset();
+              } else {
+                window.location.reload();
+              }
             }}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-full transition-colors"
           >

@@ -13,7 +13,6 @@ export interface Settings {
   fontSize: FontSize;
   nodeShape: NodeShape;
   snapToGrid: boolean;
-  accentColor: string;
 }
 
 interface SettingsContextType {
@@ -31,7 +30,6 @@ const defaultSettings: Settings = {
   fontSize: 'text-base',
   nodeShape: 'rounded',
   snapToGrid: false,
-  accentColor: '#3b82f6',
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -62,11 +60,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (window.confirm(settings.language === 'ar' ? 'هل أنت متأكد من مسح كافة البيانات؟ سيعاد تحميل التطبيق.' : 'Are you sure you want to delete all data? The app will reload.')) {
       try {
         const { db } = await import('./db');
-        await db.transaction('rw', db.nodes, db.calctapes, db.notes, db.whiteboards, async () => {
+        await db.transaction('rw', [db.nodes, db.calctapes, db.notes, db.whiteboards, db.spreadsheets, db.photos, db.files], async () => {
           await db.nodes.clear();
           await db.calctapes.clear();
           await db.notes.clear();
           await db.whiteboards.clear();
+          await db.spreadsheets.clear();
+          await db.photos.clear();
+          await db.files.clear();
         });
         window.location.reload();
       } catch (e) {
@@ -82,7 +83,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    document.documentElement.style.setProperty('--accent-color', settings.accentColor);
     document.body.className = `${settings.theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-neutral-100 text-neutral-900'} ${settings.fontSize}`;
   }, [settings.language, settings.theme, settings.fontSize]);
 
