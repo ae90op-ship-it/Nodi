@@ -14,6 +14,8 @@ import { Spreadsheet } from './components/Spreadsheet';
 import { GravityGame } from './components/GravityGame';
 import { useSettings } from './SettingsContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SnakeGame } from './components/SnakeGame';
+import { SecretNotes } from './components/SecretNotes';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { VoiceRecorderOverlay } from './components/VoiceRecorderOverlay';
 import type { AppModule } from './types';
@@ -26,6 +28,8 @@ export default function App() {
   const [isLocked, setIsLocked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isGameOpen, setIsGameOpen] = useState(false);
+  const [showSnakeGame, setShowSnakeGame] = useState(false);
+  const [showSecretNotes, setShowSecretNotes] = useState(false);
   const [recentNodes, setRecentNodes] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [inlineNote, setInlineNote] = useState('');
@@ -279,7 +283,7 @@ export default function App() {
     try {
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'nibras-backup.json';
+      a.download = 'fikrati-backup.json';
       a.click();
     } finally {
       URL.revokeObjectURL(url);
@@ -311,6 +315,14 @@ export default function App() {
         break;
       case '3600': // Game
         setIsGameOpen(true);
+        setIsSettingsOpen(false);
+        break;
+      case '9999': // Snake
+        setShowSnakeGame(true);
+        setIsSettingsOpen(false);
+        break;
+      case '112233': // Secret Notes
+        setShowSecretNotes(true);
         setIsSettingsOpen(false);
         break;
       case '3002': // Delete all
@@ -378,18 +390,20 @@ export default function App() {
           await db.spreadsheets.clear();
           await db.photos.clear();
           
-          if (data.nodes) await db.nodes.bulkAdd(data.nodes);
-          if (data.calctapes) await db.calctapes.bulkAdd(data.calctapes);
-          if (data.notes) await db.notes.bulkAdd(data.notes);
-          if (data.whiteboards) await db.whiteboards.bulkAdd(data.whiteboards);
-          if (data.spreadsheets) await db.spreadsheets.bulkAdd(data.spreadsheets);
-          if (data.photos) await db.photos.bulkAdd(data.photos);
+          if (data.nodes && Array.isArray(data.nodes)) await db.nodes.bulkAdd(data.nodes);
+          if (data.calctapes && Array.isArray(data.calctapes)) await db.calctapes.bulkAdd(data.calctapes);
+          if (data.notes && Array.isArray(data.notes)) await db.notes.bulkAdd(data.notes);
+          if (data.whiteboards && Array.isArray(data.whiteboards)) await db.whiteboards.bulkAdd(data.whiteboards);
+          if (data.spreadsheets && Array.isArray(data.spreadsheets)) await db.spreadsheets.bulkAdd(data.spreadsheets);
+          if (data.photos && Array.isArray(data.photos)) await db.photos.bulkAdd(data.photos);
+          if (data.files && Array.isArray(data.files)) await db.files.bulkAdd(data.files);
         });
         alert(settings.language === 'ar' ? 'تم استيراد البيانات بنجاح!' : 'Data imported successfully!');
       } catch (err) {
         console.error(err);
-        alert(settings.language === 'ar' ? 'فشل استيراد البيانات.' : 'Failed to import data.');
+        alert(settings.language === 'ar' ? 'فشل استيراد النسخة الاحتياطية. يرجى التأكد من صحة الملف.' : 'Failed to import backup. Please check file validity.');
       }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     };
     reader.readAsText(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -571,6 +585,8 @@ export default function App() {
       <ErrorBoundary><SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onSecretCode={handleSecretCode} /></ErrorBoundary>
       
       {isGameOpen && <ErrorBoundary><GravityGame onClose={() => setIsGameOpen(false)} /></ErrorBoundary>}
+      {showSnakeGame && <ErrorBoundary onReset={() => setShowSnakeGame(false)}><SnakeGame onClose={() => setShowSnakeGame(false)} /></ErrorBoundary>}
+      {showSecretNotes && <ErrorBoundary onReset={() => setShowSecretNotes(false)}><SecretNotes onClose={() => setShowSecretNotes(false)} /></ErrorBoundary>}
       
       {isLocked && (
         <div className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center text-white fade-in">

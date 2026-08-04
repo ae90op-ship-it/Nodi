@@ -94,11 +94,11 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
     { code: 'fr', label: 'Français (French)', dir: 'ltr' },
     { code: 'es', label: 'Español (Spanish)', dir: 'ltr' },
     { code: 'de', label: 'Deutsch (German)', dir: 'ltr' },
+    { code: 'tr', label: 'Türkçe (Turkish)', dir: 'ltr' },
+    { code: 'ru', label: 'Русский (Russian)', dir: 'ltr' },
     { code: 'zh', label: '中文 (Chinese)', dir: 'ltr' },
     { code: 'ja', label: '日本語 (Japanese)', dir: 'ltr' },
-    { code: 'ru', label: 'Русский (Russian)', dir: 'ltr' },
     { code: 'hi', label: 'हिन्दी (Hindi)', dir: 'ltr' },
-    { code: 'pt', label: 'Português (Portuguese)', dir: 'ltr' },
   ];
 
   const secretCodesList = [
@@ -158,34 +158,48 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
                   </label>
                   <div className="flex gap-2 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
                     <button
-                      onClick={() => updateSettings({ theme: 'light', backgroundColor: '#f5f5f5' })}
-                      className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium ${settings.theme === 'light' ? 'bg-white shadow text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
+                      onClick={() => updateSettings({ theme: 'light' })}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${settings.theme === 'light' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
                     >
-                      <Sun size={16} /> {t.light}
+                      {t.light}
                     </button>
                     <button
-                      onClick={() => updateSettings({ theme: 'dark', backgroundColor: '#0a0a0a' })}
-                      className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium ${settings.theme === 'dark' ? 'bg-neutral-900 shadow text-white' : 'text-neutral-400 hover:text-neutral-200'}`}
+                      onClick={() => updateSettings({ theme: 'dark' })}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${settings.theme === 'dark' ? 'bg-neutral-900 text-white shadow-sm' : 'text-neutral-400 hover:text-neutral-200'}`}
                     >
-                      <Moon size={16} /> {t.dark}
+                      {t.dark}
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
+                    <Palette size={16} /> {settings.language === 'ar' ? 'اللون الأساسي (Accent)' : 'Accent Color'}
+                  </label>
+                  <div className="flex gap-2 p-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-x-auto">
+                    {[
+                      { name: 'Blue', value: '#3b82f6' },
+                      { name: 'Purple', value: '#a855f7' },
+                      { name: 'Rose', value: '#f43f5e' },
+                      { name: 'Orange', value: '#f97316' },
+                      { name: 'Emerald', value: '#10b981' },
+                      { name: 'Cyan', value: '#06b6d4' },
+                    ].map(color => (
+                      <button
+                        key={color.value}
+                        onClick={() => updateSettings({ accentColor: color.value })}
+                        className={`w-8 h-8 rounded-full shrink-0 transition-transform ${settings.accentColor === color.value ? 'scale-110 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 ring-neutral-400' : 'hover:scale-105'}`}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
                   <label className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
                     <ImageIcon size={16} /> {t.background}
                   </label>
-                  
-                  <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700/50">
-                    <span className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">{t.color}</span>
-                    <input
-                      type="color"
-                      value={settings.backgroundColor}
-                      onChange={(e) => updateSettings({ backgroundColor: e.target.value })}
-                      className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0 p-0"
-                    />
-                  </div>
 
                   <div className="flex flex-col gap-3 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700/50">
                     <div className="flex justify-between items-center">

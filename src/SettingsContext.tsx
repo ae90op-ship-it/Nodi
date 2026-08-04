@@ -5,6 +5,7 @@ export type FontSize = 'text-sm' | 'text-base' | 'text-lg';
 export type NodeShape = 'rounded' | 'circular';
 
 export interface Settings {
+  accentColor: string;
   language: string; // Supports 90+ languages
   theme: Theme;
   backgroundImage: string | null;
@@ -22,6 +23,7 @@ interface SettingsContextType {
 }
 
 const defaultSettings: Settings = {
+  accentColor: '#3b82f6', // blue-500
   language: 'ar',
   theme: 'dark',
   backgroundImage: null,
@@ -77,7 +79,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    document.documentElement.dir = settings.language === 'ar' ? 'rtl' : 'ltr';
+    // 10 languages RTL/LTR check
+    const rtlLangs = ['ar'];
+    document.documentElement.dir = rtlLangs.includes(settings.language) ? 'rtl' : 'ltr';
     if (settings.theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -88,6 +92,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   return (
     <SettingsContext.Provider value={{ settings, updateSettings, resetData }}>
+      <style>
+        {`
+          :root {
+            --color-accent: ${settings.accentColor};
+          }
+          .text-accent { color: var(--color-accent); }
+          .bg-accent { background-color: var(--color-accent); }
+          .border-accent { border-color: var(--color-accent); }
+          .ring-accent { --tw-ring-color: var(--color-accent); }
+        `}
+      </style>
       {children}
     </SettingsContext.Provider>
   );

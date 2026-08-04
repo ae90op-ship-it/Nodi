@@ -1,5 +1,5 @@
 {
-  "name": "Nibras - Visual Productivity Graph",
+  "name": "فِكْرَتي (Fikrati) - Visual Productivity Graph",
   "description": "A cross-platform productivity and visual-analysis application with an interconnected graph, whiteboard, calc-tape, and notes.",
   "requestFramePermissions": [
     "microphone"

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
-  Controls, MiniMap,
+  Controls, ControlButton, MiniMap,
   Background,
   useNodesState,
   useEdgesState, useOnSelectionChange,
@@ -93,7 +93,7 @@ function MediaNodeContent({ nodeId, mimeType, name }: { nodeId: string, mimeType
       <div className="flex flex-col items-center justify-center h-full p-4 gap-2 text-center bg-white/50 dark:bg-black/20 w-full">
         <FileText size={24} className="text-neutral-500" />
         <span className="text-xs truncate w-full max-w-[150px]">{name || 'Unknown File'}</span>
-        <a href={blobUrl} download={name || 'file'} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full mt-2 hover:bg-blue-600 transition-colors pointer-events-auto">Download</a>
+        <a href={blobUrl} download={name || 'file'} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full mt-2 hover:bg-accent transition-colors pointer-events-auto">Download</a>
       </div>
     );
   }
@@ -267,7 +267,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         className={`border-2 border-dashed rounded-3xl transition-all duration-300 relative group
           ${data.isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
           ${colorClass || 'border-neutral-300 dark:border-neutral-700 bg-black/5 dark:bg-white/5'}
-          ${selected ? 'ring-2 ring-blue-500' : ''}
+          ${selected ? 'ring-2 ring-accent' : ''}
         `}
         style={{
           width: data.width || 400,
@@ -306,9 +306,9 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           ${data.isLocked ? 'cursor-not-allowed' : 'cursor-default'}
           w-64 h-auto min-h-[100px] rounded-xl overflow-hidden
           ${colorClass}
-          ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+          ${isMatched || data.isPinned ? 'ring-2 ring-accent ring-offset-2 ring-offset-transparent scale-105' : ''}
           ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
-          ${selected ? 'ring-2 ring-blue-500' : ''}
+          ${selected ? 'ring-2 ring-accent' : ''}
         `}
         style={{
           ...customStyle,
@@ -332,15 +332,15 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         {/* Handles */}
         
         {/* 8 Handles */}
-        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
         
-        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
 
         
         {showContextMenu && renderContextMenu()}
@@ -355,9 +355,9 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           ${data.isLocked ? 'cursor-not-allowed' : 'cursor-default'}
           w-64 h-64 rounded-xl overflow-hidden
           ${colorClass}
-          ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+          ${isMatched || data.isPinned ? 'ring-2 ring-accent ring-offset-2 ring-offset-transparent scale-105' : ''}
           ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
-          ${selected ? 'ring-2 ring-blue-500' : ''}
+          ${selected ? 'ring-2 ring-accent' : ''}
         `}
         style={{
           ...customStyle,
@@ -375,15 +375,15 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         {data.isReadOnly && <Eye size={14} className="absolute top-1 left-6 text-amber-500 z-10 drop-shadow-md" />}
         
         {/* 8 Handles */}
-        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
         
-        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
 
         
         <div 
@@ -415,9 +415,9 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         ${data.isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
         ${colorClass}
         ${isCircular ? 'w-24 h-24 rounded-full flex-col gap-1 p-2' : 'px-4 py-3 rounded-xl min-w-[140px] flex-row'}
-        ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+        ${isMatched || data.isPinned ? 'ring-2 ring-accent ring-offset-2 ring-offset-transparent scale-105' : ''}
         ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
-        ${selected ? 'ring-2 ring-blue-500' : ''}
+        ${selected ? 'ring-2 ring-accent' : ''}
       `}
       style={{
         ...customStyle,
@@ -438,15 +438,15 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
 
       
         {/* 8 Handles */}
-        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
         
-        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
 
       <Icon size={isCircular ? 24 : 20} />
       <span className={`font-semibold whitespace-nowrap ${isCircular ? 'text-xs truncate w-full text-center' : 'text-sm'}`}>{data.title}</span>
@@ -606,7 +606,7 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
       try {
         const a = document.createElement('a');
         a.href = url;
-        a.download = `nibras-export-${node.title}.json`;
+        a.download = `fikrati-export-${node.title}.json`;
         a.click();
       } finally {
         URL.revokeObjectURL(url);
@@ -800,23 +800,18 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
         snapGrid={[50, 50]}
       >
         <Background variant={BackgroundVariant.Dots} gap={settings.snapToGrid ? 50 : 20} size={2} color={settings.theme === 'dark' ? '#3f3f46' : '#d4d4d8'} />
-        <Controls className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm overflow-hidden" />
+        <Controls position="bottom-center" className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm overflow-hidden flex flex-col gap-1 p-1">
+          <ControlButton onClick={() => setShowMiniMap(!showMiniMap)} className="text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg p-1.5 transition-colors border-none" title="Toggle MiniMap">
+            <MapIcon size={16} />
+          </ControlButton>
+        </Controls>
         {showMiniMap && <MiniMap zoomable pannable className="rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden" maskColor="rgba(0,0,0,0.1)" />}
-        <Panel position="bottom-right" className="mb-4 mr-4">
-          <button
-            onClick={() => setShowMiniMap(!showMiniMap)}
-            className="p-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-neutral-600 dark:text-neutral-400"
-            title="Toggle MiniMap"
-          >
-            <MapIcon size={20} />
-          </button>
-        </Panel>
         
         {selectedNodes.length > 1 && (
           <Panel position="top-center" className="flex gap-2 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl mt-4 pointer-events-auto z-50">
             <button 
               onClick={handleGroupNodes}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold shadow-md active:scale-95 flex items-center gap-2"
+              className="px-4 py-2 bg-accent hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold shadow-md active:scale-95 flex items-center gap-2"
             >
               <Box size={18} />
               {settings.language === 'ar' ? 'تجميع في حاوية' : 'Group in Container'}
