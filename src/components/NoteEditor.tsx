@@ -318,7 +318,7 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0" style={{ backgroundColor: node?.color ? `${node.color}20` : 'transparent' }}>
         <div className="flex items-center gap-2 md:gap-4 flex-1">
-          <button onClick={onClose} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors shrink-0">
+          <button onClick={onClose} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full transition-colors shrink-0">
             <ArrowLeft size={20} className={isAr ? 'rotate-180' : ''} />
           </button>
           <input
@@ -333,12 +333,12 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
           <span className="text-xs text-neutral-400 mr-2">{saveStatus}</span>
           
-          <button onClick={copyContent} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-neutral-500" title={isAr ? 'نسخ' : 'Copy'}>
+          <button onClick={copyContent} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full" title={isAr ? 'نسخ' : 'Copy'}>
             <Copy size={18} />
           </button>
           
           <div className="relative">
-            <button onClick={() => setShowColorPicker(!showColorPicker)} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-neutral-500">
+            <button onClick={() => setShowColorPicker(!showColorPicker)} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full">
               <Palette size={18} />
             </button>
             {showColorPicker && (
@@ -352,26 +352,26 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             )}
           </div>
 
-          <button onClick={() => setShowHistory(!showHistory)} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-neutral-500" title={isAr ? 'السجل' : 'History'}>
+          <button onClick={() => setShowHistory(!showHistory)} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full" title={isAr ? 'السجل' : 'History'}>
             <History size={18} />
           </button>
 
-          <button onClick={togglePin} className={`p-2 rounded-full ${node?.isPinned ? 'bg-blue-100 text-blue-500 dark:bg-blue-900/50' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500'}`}>
+          <button onClick={togglePin} className={`p-2 rounded-full transition-colors ${node?.isPinned ? "bg-blue-500 text-white dark:bg-blue-600" : "bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100"}`}>
             <Pin size={18} fill={node?.isPinned ? "currentColor" : "none"} />
           </button>
           
-          <button onClick={toggleReadOnly} className={`p-2 rounded-full ${node?.isReadOnly ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/50' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500'}`}>
+          <button onClick={toggleReadOnly} className={`p-2 rounded-full transition-colors ${node?.isReadOnly ? "bg-amber-500 text-white dark:bg-amber-600" : "bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100"}`}>
             {node?.isReadOnly ? <Eye size={18} /> : <Eye size={18} />}
           </button>
 
           {noteData?.pinCode ? (
             <button onClick={removePin} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-red-500"><Unlock size={18} /></button>
           ) : (
-            <button onClick={setupPin} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-neutral-500"><Lock size={18} /></button>
+            <button onClick={setupPin} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full"><Lock size={18} /></button>
           )}
 
           <div className="relative">
-            <button onClick={() => setShowExport(!showExport)} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-neutral-500">
+            <button onClick={() => setShowExport(!showExport)} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full">
               <Download size={18} />
             </button>
             {showExport && (
@@ -383,12 +383,12 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
             )}
           </div>
           
-          <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full text-neutral-500 hidden md:block">
+          <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 bg-black/10 dark:bg-white/20 hover:bg-black/20 dark:hover:bg-white/30 text-neutral-800 dark:text-neutral-100 rounded-full hidden md:block">
             <Maximize size={18} />
           </button>
 
           {onDelete && (
-            <button onClick={onDelete} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-full transition-colors">
+            <button onClick={onDelete} className="p-2 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 rounded-full transition-colors">
               <Trash2 size={18} />
             </button>
           )}
@@ -404,15 +404,15 @@ export function NoteEditor({ nodeId, onClose, onDelete }: NoteEditorProps) {
           </button>
           <div className="w-px h-6 bg-neutral-300 dark:bg-neutral-700 mx-2 shrink-0" />
           
-          <button onClick={() => insertFormatting('**', '**')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Bold size={16} /></button>
-          <button onClick={() => insertFormatting('*', '*')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Italic size={16} /></button>
-          <button onClick={() => insertFormatting('- ')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><List size={16} /></button>
-          <button onClick={() => insertFormatting('1. ')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><ListOrdered size={16} /></button>
-          <button onClick={() => insertFormatting('> ')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Quote size={16} /></button>
-          <button onClick={() => insertFormatting('```\n', '\n```')} className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md shrink-0"><Code size={16} /></button>
+          <button onClick={() => insertFormatting('**', '**')} className="p-1.5 bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md shrink-0 transition-colors"><Bold size={16} /></button>
+          <button onClick={() => insertFormatting('*', '*')} className="p-1.5 bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md shrink-0 transition-colors"><Italic size={16} /></button>
+          <button onClick={() => insertFormatting('- ')} className="p-1.5 bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md shrink-0 transition-colors"><List size={16} /></button>
+          <button onClick={() => insertFormatting('1. ')} className="p-1.5 bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md shrink-0 transition-colors"><ListOrdered size={16} /></button>
+          <button onClick={() => insertFormatting('> ')} className="p-1.5 bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md shrink-0 transition-colors"><Quote size={16} /></button>
+          <button onClick={() => insertFormatting('```\n', '\n```')} className="p-1.5 bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md shrink-0 transition-colors"><Code size={16} /></button>
           
           <div className="w-px h-6 bg-neutral-300 dark:bg-neutral-700 mx-2 shrink-0" />
-          <button onClick={toggleSpeechRecognition} className={`p-1.5 rounded-md flex items-center gap-1 shrink-0 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400'}`}>
+          <button onClick={toggleSpeechRecognition} className={`p-1.5 shadow-sm border border-neutral-200 dark:border-neutral-700 rounded-md flex items-center gap-1 shrink-0 transition-colors ${isRecording ? "bg-red-500 border-red-500 text-white animate-pulse" : "bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200"}`}>
             {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
             <span className="text-xs">{isRecording ? (isAr ? 'إيقاف' : 'Stop') : (isAr ? 'إملاء' : 'Dictate')}</span>
           </button>

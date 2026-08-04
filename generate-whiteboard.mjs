@@ -1,4 +1,5 @@
-
+import fs from 'fs';
+const code = `
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Stage, Layer, Line, Text as KonvaText, Rect, Circle, Arrow, Star, Image as KonvaImage, Transformer } from 'react-konva';
 import { ArrowLeft, Pen, Square, Type, MousePointer2, Trash2, Undo2, Redo2, Download, Circle as CircleIcon, MoveRight, Star as StarIcon, Eraser, Grid, Image as ImageIcon, Minus, Trash, FileBox, LayoutTemplate } from 'lucide-react';
@@ -17,7 +18,7 @@ type Tool = 'select' | 'pen' | 'highlighter' | 'eraser' | 'rect' | 'circle' | 'a
 // Extended Element type for Whiteboard
 export interface WBElement {
   id: string;
-  type: 'path' | 'rect' | 'circle' | 'arrow' | 'star' | 'text' | 'image' | 'line';
+  type: 'path' | 'rect' | 'circle' | 'arrow' | 'star' | 'text' | 'image';
   x?: number;
   y?: number;
   width?: number;
@@ -275,7 +276,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
     if (stageRef.current) {
       const uri = stageRef.current.toDataURL({ pixelRatio: 2 });
       const link = document.createElement('a');
-      link.download = `whiteboard-${nodeId}.png`;
+      link.download = \`whiteboard-\${nodeId}.png\`;
       link.href = uri;
       link.click();
     }
@@ -388,7 +389,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
               <button 
                 key={t.id}
                 onClick={() => setTool(t.id as Tool)} 
-                className={`p-1.5 rounded-lg transition-colors ${tool === t.id ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                className={\`p-1.5 rounded-lg transition-colors \${tool === t.id ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}\`}
                 title={t.title}
               >
                 <t.icon size={18} className={t.cls || ''} />
@@ -407,7 +408,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
               <button 
                 key={t.id}
                 onClick={() => setTool(t.id as Tool)} 
-                className={`p-1.5 rounded-lg transition-colors ${tool === t.id ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                className={\`p-1.5 rounded-lg transition-colors \${tool === t.id ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}\`}
               >
                 <t.icon size={18} />
               </button>
@@ -421,7 +422,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
                 <button
                   key={c}
                   onClick={() => setColor(c)}
-                  className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-neutral-400 dark:border-white' : 'border-transparent'}`}
+                  className={\`w-6 h-6 rounded-full border-2 \${color === c ? 'border-neutral-400 dark:border-white' : 'border-transparent'}\`}
                   style={{ backgroundColor: c }}
                 />
               ))}
@@ -437,11 +438,11 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
               <input type="range" min="0.1" max="1" step="0.1" value={opacity} onChange={(e) => setOpacity(parseFloat(e.target.value))} className="w-16 accent-blue-500" />
             </div>
 
-            <button onClick={() => setGridSnapping(!gridSnapping)} className={`p-1.5 rounded-lg transition-colors ${gridSnapping ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`} title="محاذاة الشبكة">
+            <button onClick={() => setGridSnapping(!gridSnapping)} className={\`p-1.5 rounded-lg transition-colors \${gridSnapping ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}\`} title="محاذاة الشبكة">
               <Grid size={18} />
             </button>
             
-            <button onClick={() => setBgGrid(!bgGrid)} className={`p-1.5 rounded-lg transition-colors ${bgGrid ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`} title="إظهار شبكة الخلفية">
+            <button onClick={() => setBgGrid(!bgGrid)} className={\`p-1.5 rounded-lg transition-colors \${bgGrid ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}\`} title="إظهار شبكة الخلفية">
               <FileBox size={18} />
             </button>
             
@@ -492,7 +493,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
                   onTap: () => tool === 'select' && setSelectedId(el.id),
                   onDragEnd: (e: any) => handleDragEnd(e, el.id),
                   onTransformEnd: (e: any) => handleTransformEnd(e, el.id),
-                  globalCompositeOperation: (el.globalCompositeOperation as any) || 'source-over',
+                  globalCompositeOperation: el.globalCompositeOperation || 'source-over',
                 };
 
                 if (el.type === 'path' || el.type === 'line') {
@@ -549,3 +550,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/Whiteboard.tsx', code);
+console.log("Whiteboard updated");

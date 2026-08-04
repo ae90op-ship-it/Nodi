@@ -273,6 +273,7 @@ export default function App() {
     a.href = url;
     a.download = 'nibras-backup.json';
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSecretCode = useCallback(async (code: string) => {

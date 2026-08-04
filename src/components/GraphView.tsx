@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
-  Controls,
+  Controls, MiniMap,
   Background,
   useNodesState,
   useEdgesState, useOnSelectionChange,
@@ -330,10 +330,18 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         </div>
 
         {/* Handles */}
-        <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
-        <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
-        <Handle type="source" position={Position.Left} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
-        <Handle type="source" position={Position.Right} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
+        
+        {/* 8 Handles */}
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        
+        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+
         
         {showContextMenu && renderContextMenu()}
       </div>
@@ -365,8 +373,18 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
         {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
         {data.isReadOnly && <Eye size={14} className="absolute top-1 left-6 text-amber-500 z-10 drop-shadow-md" />}
+        
+        {/* 8 Handles */}
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        
+        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
 
-        <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
         
         <div 
           className="h-10 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-center px-6 font-bold custom-drag-handle"
@@ -386,8 +404,6 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           />
         </div>
 
-        <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors" isConnectable={!data.isLocked} />
-        
         {showContextMenu && renderContextMenu()}
       </div>
     );
@@ -420,7 +436,18 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       {data.isLocked && <Lock size={12} className="absolute bottom-[-6px] left-[-6px] text-red-500 drop-shadow-md" />}
       {data.isReadOnly && <Eye size={12} className="absolute bottom-[-6px] left-[10px] text-amber-500 drop-shadow-md" />}
 
-      <Handle type="target" position={Position.Top} className={`w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors ${isCircular ? 'top-[-4px]' : ''}`} isConnectable={!data.isLocked} />
+      
+        {/* 8 Handles */}
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        
+        <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="bl" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="br" position={Position.Bottom} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
+
       <Icon size={isCircular ? 24 : 20} />
       <span className={`font-semibold whitespace-nowrap ${isCircular ? 'text-xs truncate w-full text-center' : 'text-sm'}`}>{data.title}</span>
       {data.tags && data.tags.length > 0 && !isCircular && (
@@ -432,10 +459,8 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           ))}
         </div>
       )}
-      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 !bg-neutral-300 dark:!bg-neutral-500 border-2 border-white dark:border-[#0a0a0a] hover:!bg-blue-500 transition-colors ${isCircular ? 'bottom-[-4px]' : ''}`} isConnectable={!data.isLocked} />
-
       {showContextMenu && renderContextMenu()}
-    </div>
+      </div>
   );
 };
 
@@ -581,6 +606,7 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
       a.href = url;
       a.download = `nibras-export-${node.title}.json`;
       a.click();
+      URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Export failed", e);
     }
@@ -708,6 +734,10 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
     }
   }, [searchQuery, initialNodes, fitView]);
 
+  const isValidConnection = useCallback((connection: Connection) => {
+    return connection.source !== connection.target;
+  }, []);
+
   const onConnect = useCallback(async (params: Connection) => {
     if (params.source && params.target) {
       setEdges((eds) => addEdge({ ...params, type: 'customEdge' }, eds));
@@ -731,8 +761,9 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
   return (
     <>
       <ReactFlow
-        nodes={flowNodes}
-        edges={edges}
+          nodes={flowNodes}
+          edges={edges}
+          isValidConnection={isValidConnection}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -749,6 +780,8 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
         snapGrid={[50, 50]}
       >
         <Background variant={BackgroundVariant.Dots} gap={settings.snapToGrid ? 50 : 20} size={2} color={settings.theme === 'dark' ? '#3f3f46' : '#d4d4d8'} />
+        <Controls className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm overflow-hidden" />
+        <MiniMap zoomable pannable className="rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden" maskColor="rgba(0,0,0,0.1)" />
         
         {selectedNodes.length > 1 && (
           <Panel position="top-center" className="flex gap-2 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl mt-4 pointer-events-auto z-50">
