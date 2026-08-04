@@ -437,7 +437,7 @@ export default function App() {
             <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-r-2xl shadow-xl w-64 max-h-[60vh] overflow-hidden flex flex-col pointer-events-auto" dir={settings.language === 'ar' ? 'rtl' : 'ltr'} style={{ borderRadius: settings.language === 'ar' ? '1rem 0 0 1rem' : '0 1rem 1rem 0' }}>
               <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-black/5 dark:bg-white/5">
                 <h3 className="font-bold flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-                  <Clock size={18} className="text-blue-500" />
+                  <Clock size={18} className="text-accent" />
                   {settings.language === 'ar' ? 'السجل الأخير' : 'Recent Nodes'}
                 </h3>
               </div>
@@ -499,7 +499,7 @@ export default function App() {
                     value={inlineNote}
                     onChange={e => setInlineNote(e.target.value)}
                     placeholder={settings.language === 'ar' ? 'اكتب ملاحظة سريعة ثم اضغط Enter...' : 'Type a quick note & press Enter...'}
-                    className="w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 px-4 outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm placeholder:text-neutral-400"
+                    className="w-full bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 px-4 outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 transition-all shadow-sm placeholder:text-neutral-400"
                   />
                 </form>
 
@@ -508,14 +508,14 @@ export default function App() {
                   <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={importData} />
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-accent dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
                     title={settings.language === 'ar' ? 'استيراد نسخة احتياطية' : 'Import Backup'}
                   >
                     <Upload size={20} />
                   </button>
                   <button 
                     onClick={exportData}
-                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-accent dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
                     title={settings.language === 'ar' ? 'تصدير نسخة احتياطية' : 'Export Backup'}
                   >
                     <Download size={20} />
@@ -523,20 +523,20 @@ export default function App() {
 
                   {/* Search Bar */}
                   <div className="relative group hidden sm:block">
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" size={18} />
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-accent dark:group-focus-within:text-accent transition-colors" size={18} />
                     <input 
                       type="text"
                       placeholder={settings.language === 'ar' ? 'البحث عن عقدة...' : 'Search nodes...'}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-blue-500/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
+                      className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white rounded-2xl py-2 md:py-3 pr-11 pl-4 w-48 focus:w-64 outline-none focus:border-accent/50 transition-all duration-300 placeholder:text-neutral-400 shadow-sm"
                     />
                   </div>
 
                   {/* Settings Button */}
                   <button 
                     onClick={() => setIsSettingsOpen(true)}
-                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
+                    className="p-2 md:p-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-accent dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-all shadow-sm active:scale-95"
                   >
                     <SettingsIcon size={22} />
                   </button>
@@ -569,7 +569,7 @@ export default function App() {
           <input 
             type="password" 
             placeholder="****"
-            className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 w-48 text-center text-2xl tracking-widest outline-none focus:border-blue-500 transition-colors"
+            className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 w-48 text-center text-2xl tracking-widest outline-none focus:border-accent transition-colors"
             onChange={(e) => {
               if(e.target.value === '9001') setIsLocked(false);
             }}

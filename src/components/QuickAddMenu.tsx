@@ -64,7 +64,7 @@ export const QuickAddMenu = memo(({ onAdd, onRecordAudio, onUploadMedia }: Quick
     { id: 'drawing', labelAr: 'رسم', labelEn: 'Drawing', icon: <PenTool size={24} className="text-purple-400" />, action: () => handleSelect('drawing') },
     { id: 'note', labelAr: 'ملاحظات', labelEn: 'Notes', icon: <FileText size={24} className="text-amber-400" />, action: () => handleSelect('note') },
     { id: 'calctape', labelAr: 'آلة حاسبة', labelEn: 'Calculator', icon: <Calculator size={24} className="text-emerald-400" />, action: () => handleSelect('calctape') },
-    { id: 'whiteboard', labelAr: 'سبورة تحليل', labelEn: 'Whiteboard', icon: <ImageIcon size={24} className="text-blue-400" />, action: () => handleSelect('whiteboard') }
+    { id: 'whiteboard', labelAr: 'سبورة تحليل', labelEn: 'Whiteboard', icon: <ImageIcon size={24} className="text-accent" />, action: () => handleSelect('whiteboard') }
   ];
 
   // Default Shortcuts
@@ -234,7 +234,7 @@ export const QuickAddMenu = memo(({ onAdd, onRecordAudio, onUploadMedia }: Quick
                     onClick={() => setIsEditMode(!isEditMode)}
                     className={cn(
                       "flex items-center gap-2 text-sm px-3 py-1.5 rounded-full font-medium transition-colors",
-                      isEditMode ? "bg-blue-500 text-white" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      isEditMode ? "bg-accent text-white" : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                     )}
                   >
                     {isEditMode ? <Check size={16} /> : <Settings size={16} />}
@@ -260,7 +260,7 @@ export const QuickAddMenu = memo(({ onAdd, onRecordAudio, onUploadMedia }: Quick
                           onClick={() => toggleShortcutVisibility(sc.id)}
                           className={cn(
                             "p-2 rounded-full transition-colors",
-                            sc.isHidden ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-500" : "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
+                            sc.isHidden ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-500" : "bg-accent-light dark:bg-accent-light text-accent dark:text-accent"
                           )}
                         >
                           {sc.isHidden ? <EyeOff size={18} /> : <Eye size={18} />}

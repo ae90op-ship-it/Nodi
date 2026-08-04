@@ -349,7 +349,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
             <input 
               value={title}
               onChange={handleTitleChange}
-              className="bg-transparent text-lg font-semibold outline-none focus:border-b-2 focus:border-blue-500 w-40 md:w-64"
+              className="bg-transparent text-lg font-semibold outline-none focus:border-b-2 focus:border-accent w-40 md:w-64"
               placeholder="عنوان السبورة"
             />
           </div>
@@ -361,7 +361,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
             <button onClick={redo} disabled={historyStep === history.length - 1} className="p-2 disabled:opacity-50 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full">
               <Redo2 size={18} />
             </button>
-            <button onClick={exportCanvas} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full ml-2 text-blue-600 dark:text-blue-400" title="تصدير صورة">
+            <button onClick={exportCanvas} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full ml-2 text-accent dark:text-accent" title="تصدير صورة">
               <Download size={18} />
             </button>
             <button onClick={applyTemplate} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full text-purple-600 dark:text-purple-400" title="قالب جاهز">
@@ -388,7 +388,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
               <button 
                 key={t.id}
                 onClick={() => setTool(t.id as Tool)} 
-                className={`p-1.5 rounded-lg transition-colors ${tool === t.id ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                className={`p-1.5 rounded-lg transition-colors ${tool === t.id ? 'bg-accent-light dark:bg-accent-light text-accent dark:text-accent' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                 title={t.title}
               >
                 <t.icon size={18} className={t.cls || ''} />
@@ -407,7 +407,7 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
               <button 
                 key={t.id}
                 onClick={() => setTool(t.id as Tool)} 
-                className={`p-1.5 rounded-lg transition-colors ${tool === t.id ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                className={`p-1.5 rounded-lg transition-colors ${tool === t.id ? 'bg-accent-light dark:bg-accent-light text-accent dark:text-accent' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
               >
                 <t.icon size={18} />
               </button>
@@ -429,19 +429,19 @@ export function Whiteboard({ nodeId, onClose, onDelete }: WhiteboardProps) {
             
             <div className="flex items-center gap-1">
               <label className="text-xs text-neutral-500">سُمك</label>
-              <input type="range" min="1" max="20" value={strokeWidth} onChange={(e) => setStrokeWidth(parseInt(e.target.value))} className="w-16 accent-blue-500" />
+              <input type="range" min="1" max="20" value={strokeWidth} onChange={(e) => setStrokeWidth(parseInt(e.target.value))} className="w-16 accent-accent" />
             </div>
 
             <div className="flex items-center gap-1">
               <label className="text-xs text-neutral-500">شفافية</label>
-              <input type="range" min="0.1" max="1" step="0.1" value={opacity} onChange={(e) => setOpacity(parseFloat(e.target.value))} className="w-16 accent-blue-500" />
+              <input type="range" min="0.1" max="1" step="0.1" value={opacity} onChange={(e) => setOpacity(parseFloat(e.target.value))} className="w-16 accent-accent" />
             </div>
 
-            <button onClick={() => setGridSnapping(!gridSnapping)} className={`p-1.5 rounded-lg transition-colors ${gridSnapping ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`} title="محاذاة الشبكة">
+            <button onClick={() => setGridSnapping(!gridSnapping)} className={`p-1.5 rounded-lg transition-colors ${gridSnapping ? 'bg-accent-light dark:bg-accent-light text-accent dark:text-accent' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`} title="محاذاة الشبكة">
               <Grid size={18} />
             </button>
             
-            <button onClick={() => setBgGrid(!bgGrid)} className={`p-1.5 rounded-lg transition-colors ${bgGrid ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`} title="إظهار شبكة الخلفية">
+            <button onClick={() => setBgGrid(!bgGrid)} className={`p-1.5 rounded-lg transition-colors ${bgGrid ? 'bg-accent-light dark:bg-accent-light text-accent dark:text-accent' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`} title="إظهار شبكة الخلفية">
               <FileBox size={18} />
             </button>
             

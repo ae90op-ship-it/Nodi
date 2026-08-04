@@ -111,7 +111,7 @@ export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProp
           <input 
             value={title}
             onChange={handleTitleChange}
-            className="bg-transparent text-lg font-semibold outline-none focus:border-b focus:border-blue-500 w-48 md:w-64"
+            className="bg-transparent text-lg font-semibold outline-none focus:border-b focus:border-accent w-48 md:w-64"
             placeholder="عنوان الآلة الحاسبة"
           />
         </div>
@@ -154,12 +154,12 @@ export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProp
               onChange={e => setCurrentExpr(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="مثال: 1200 * 0.15"
-              className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 font-mono outline-none focus:border-blue-500 text-left text-neutral-900 dark:text-white shadow-sm pr-12"
+              className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 font-mono outline-none focus:border-accent text-left text-neutral-900 dark:text-white shadow-sm pr-12"
               dir="ltr"
             />
             <button 
               onClick={() => inputRef.current?.focus()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 md:hidden text-neutral-500 hover:text-blue-500 bg-neutral-100 dark:bg-neutral-800 rounded-lg active:scale-95"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 md:hidden text-neutral-500 hover:text-accent bg-neutral-100 dark:bg-neutral-800 rounded-lg active:scale-95"
               title="إظهار لوحة المفاتيح"
             >
               <Keyboard size={20} />
@@ -171,11 +171,11 @@ export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProp
             onChange={e => setCurrentComment(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="ملاحظة حول العملية (اختياري)..."
-            className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-neutral-900 dark:text-white shadow-sm"
+            className="flex-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:border-accent text-neutral-900 dark:text-white shadow-sm"
           />
           <button 
             onClick={handleAddLine}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3 flex items-center justify-center gap-2 transition-colors font-semibold shadow-md active:scale-95 whitespace-nowrap"
+            className="bg-accent hover:bg-accent text-white rounded-xl px-6 py-3 flex items-center justify-center gap-2 transition-colors font-semibold shadow-md active:scale-95 whitespace-nowrap"
           >
             <Plus size={20} /> إضافة
           </button>
@@ -183,7 +183,7 @@ export function TapeCalculator({ nodeId, onClose, onDelete }: TapeCalculatorProp
         
         <div className="w-full md:w-auto min-w-[200px] bg-white dark:bg-neutral-900 rounded-xl p-4 border border-neutral-200 dark:border-neutral-800 shadow-sm flex items-center justify-between">
           <span className="text-neutral-500 dark:text-neutral-400 font-semibold text-sm">المجموع</span>
-          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono" dir="ltr">
+          <span className="text-2xl font-bold text-accent dark:text-accent font-mono" dir="ltr">
             {total}
           </span>
         </div>

@@ -23,7 +23,7 @@ export function Spreadsheet({ nodeId, onClose, onDelete }: SpreadsheetProps) {
           <span className="font-semibold text-sm flex items-center gap-2 px-2"><Table size={16}/> Untitled Spreadsheet</span>
         </div>
         <div className="flex gap-2">
-          <button className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-colors text-blue-600 dark:text-blue-400" title="Add Row">
+          <button className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-colors text-accent dark:text-accent" title="Add Row">
             <Plus size={18}/>
           </button>
           <button className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded transition-colors text-neutral-600 dark:text-neutral-400">
@@ -72,7 +72,7 @@ export function Spreadsheet({ nodeId, onClose, onDelete }: SpreadsheetProps) {
                   <td key={colIndex} className="border border-neutral-300 dark:border-neutral-700 p-0">
                     <input 
                       type="text" 
-                      className="w-full h-full px-2 py-1 outline-none bg-transparent focus:ring-2 focus:ring-blue-500 focus:bg-blue-50 dark:focus:bg-blue-900/20"
+                      className="w-full h-full px-2 py-1 outline-none bg-transparent focus:ring-2 focus:ring-accent focus:bg-accent-light dark:focus:bg-accent-light"
                     />
                   </td>
                 ))}

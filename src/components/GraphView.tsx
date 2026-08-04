@@ -93,7 +93,7 @@ function MediaNodeContent({ nodeId, mimeType, name }: { nodeId: string, mimeType
       <div className="flex flex-col items-center justify-center h-full p-4 gap-2 text-center bg-white/50 dark:bg-black/20 w-full">
         <FileText size={24} className="text-neutral-500" />
         <span className="text-xs truncate w-full max-w-[150px]">{name || 'Unknown File'}</span>
-        <a href={blobUrl} download={name || 'file'} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full mt-2 hover:bg-blue-600 transition-colors pointer-events-auto">Download</a>
+        <a href={blobUrl} download={name || 'file'} className="text-xs bg-accent text-white px-3 py-1 rounded-full mt-2 hover:bg-accent transition-colors pointer-events-auto">Download</a>
       </div>
     );
   }
@@ -135,7 +135,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
   const colorClass = useMemo(() => {
     if (data.color) return '';
     switch (data.type) {
-      case 'whiteboard': return 'text-blue-600 bg-blue-100 border-blue-300 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-500/50';
+      case 'whiteboard': return 'text-accent bg-accent-light border-blue-300 dark:text-accent dark:bg-accent-light dark:border-accent/50';
       case 'calctape': return 'text-emerald-600 bg-emerald-100 border-emerald-300 dark:text-emerald-400 dark:bg-emerald-900/30 dark:border-emerald-500/50';
       case 'note': return 'text-amber-600 bg-amber-100 border-amber-300 dark:text-amber-400 dark:bg-amber-900/30 dark:border-amber-500/50';
       case 'drawing': return 'text-purple-600 bg-purple-100 border-purple-300 dark:text-purple-400 dark:bg-purple-900/30 dark:border-purple-500/50';
@@ -248,7 +248,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
                 setShowContextMenu(false);
               }
             }}
-            className="w-full text-xs bg-transparent border-b border-neutral-300 dark:border-neutral-600 focus:outline-none focus:border-blue-500 placeholder-neutral-400"
+            className="w-full text-xs bg-transparent border-b border-neutral-300 dark:border-neutral-600 focus:outline-none focus:border-accent placeholder-neutral-400"
           />
         </div>
         <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-1" />
@@ -267,7 +267,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         className={`border-2 border-dashed rounded-3xl transition-all duration-300 relative group
           ${data.isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
           ${colorClass || 'border-neutral-300 dark:border-neutral-700 bg-black/5 dark:bg-white/5'}
-          ${selected ? 'ring-2 ring-blue-500' : ''}
+          ${selected ? 'ring-2 ring-accent' : ''}
         `}
         style={{
           width: data.width || 400,
@@ -306,9 +306,9 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           ${data.isLocked ? 'cursor-not-allowed' : 'cursor-default'}
           w-64 h-auto min-h-[100px] rounded-xl overflow-hidden
           ${colorClass}
-          ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+          ${isMatched || data.isPinned ? 'ring-2 ring-accent ring-offset-2 ring-offset-transparent scale-105' : ''}
           ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
-          ${selected ? 'ring-2 ring-blue-500' : ''}
+          ${selected ? 'ring-2 ring-accent' : ''}
         `}
         style={{
           ...customStyle,
@@ -321,7 +321,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
       >
-        {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
+        {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-accent z-10 drop-shadow-md" fill="currentColor" />}
         {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
         {data.isReadOnly && <Eye size={14} className="absolute top-1 left-6 text-amber-500 z-10 drop-shadow-md" />}
         
@@ -332,10 +332,10 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         {/* Handles */}
         
         {/* 8 Handles */}
-        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
         
         <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
         <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
@@ -355,9 +355,9 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
           ${data.isLocked ? 'cursor-not-allowed' : 'cursor-default'}
           w-64 h-64 rounded-xl overflow-hidden
           ${colorClass}
-          ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+          ${isMatched || data.isPinned ? 'ring-2 ring-accent ring-offset-2 ring-offset-transparent scale-105' : ''}
           ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
-          ${selected ? 'ring-2 ring-blue-500' : ''}
+          ${selected ? 'ring-2 ring-accent' : ''}
         `}
         style={{
           ...customStyle,
@@ -370,15 +370,15 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
       >
-        {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-blue-500 z-10 drop-shadow-md" fill="currentColor" />}
+        {data.isPinned && <Pin size={14} className="absolute top-1 right-2 text-accent z-10 drop-shadow-md" fill="currentColor" />}
         {data.isLocked && <Lock size={14} className="absolute top-1 left-2 text-red-500 z-10 drop-shadow-md" />}
         {data.isReadOnly && <Eye size={14} className="absolute top-1 left-6 text-amber-500 z-10 drop-shadow-md" />}
         
         {/* 8 Handles */}
-        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
         
         <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
         <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
@@ -415,9 +415,9 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
         ${data.isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
         ${colorClass}
         ${isCircular ? 'w-24 h-24 rounded-full flex-col gap-1 p-2' : 'px-4 py-3 rounded-xl min-w-[140px] flex-row'}
-        ${isMatched || data.isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-105' : ''}
+        ${isMatched || data.isPinned ? 'ring-2 ring-accent ring-offset-2 ring-offset-transparent scale-105' : ''}
         ${!isMatched && data.searchActive && !data.isPinned ? 'opacity-30 grayscale' : 'opacity-100'}
-        ${selected ? 'ring-2 ring-blue-500' : ''}
+        ${selected ? 'ring-2 ring-accent' : ''}
       `}
       style={{
         ...customStyle,
@@ -432,16 +432,16 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       title={data.title}
     >
       {/* Visual Pins & Locks */}
-      {data.isPinned && <Pin size={12} className="absolute top-[-6px] right-[-6px] text-blue-500 drop-shadow-md" fill="currentColor" />}
+      {data.isPinned && <Pin size={12} className="absolute top-[-6px] right-[-6px] text-accent drop-shadow-md" fill="currentColor" />}
       {data.isLocked && <Lock size={12} className="absolute bottom-[-6px] left-[-6px] text-red-500 drop-shadow-md" />}
       {data.isReadOnly && <Eye size={12} className="absolute bottom-[-6px] left-[10px] text-amber-500 drop-shadow-md" />}
 
       
         {/* 8 Handles */}
-        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
-        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-blue-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="t" position={Position.Top} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="b" position={Position.Bottom} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="l" position={Position.Left} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
+        <Handle type="source" id="r" position={Position.Right} className="w-4 h-4 !bg-accent border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ top: '50%' }} isConnectable={!data.isLocked} />
         
         <Handle type="source" id="tl" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '15%' }} isConnectable={!data.isLocked} />
         <Handle type="source" id="tr" position={Position.Top} className="w-4 h-4 !bg-purple-500 border-2 border-white dark:border-[#0a0a0a] transition-all opacity-0 group-hover:opacity-100 hover:scale-125 z-20" style={{ left: '85%' }} isConnectable={!data.isLocked} />
@@ -453,7 +453,7 @@ const CustomNode = ({ data, selected, id }: NodeProps<FlowNode<CustomNodeData>>)
       {data.tags && data.tags.length > 0 && !isCircular && (
         <div className="flex gap-1 overflow-hidden absolute -bottom-2 right-2 max-w-full">
           {data.tags.map(tag => (
-            <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-blue-500 text-white rounded-full truncate max-w-[60px]">
+            <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-accent text-white rounded-full truncate max-w-[60px]">
               {tag}
             </span>
           ))}
@@ -522,12 +522,12 @@ const CustomEdge = ({
               onChange={(e) => setLabel(e.target.value)}
               onBlur={handleBlur}
               onKeyDown={(e) => e.key === 'Enter' && handleBlur()}
-              className="bg-white dark:bg-neutral-800 text-xs px-2 py-1 rounded border border-blue-500 outline-none shadow-sm dark:text-white"
+              className="bg-white dark:bg-neutral-800 text-xs px-2 py-1 rounded border border-accent outline-none shadow-sm dark:text-white"
             />
           ) : (
             <div 
               onClick={onLabelClick}
-              className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm text-xs px-2 py-1 rounded border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors shadow-sm"
+              className="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm text-xs px-2 py-1 rounded border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 cursor-pointer hover:border-accent dark:hover:border-accent transition-colors shadow-sm"
             >
               {label || '+ إضافة تصنيف'}
             </div>
@@ -773,6 +773,9 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
         edgeTypes={edgeTypes}
         fitView
         className={settings.theme === 'dark' ? 'dark' : ''}
+        panOnScroll={true}
+        selectionOnDrag={true}
+        panOnDrag={[1, 2]}
         minZoom={0.1}
         maxZoom={4}
         proOptions={{ hideAttribution: true }}
@@ -787,7 +790,7 @@ function Flow({ nodes, onOpenNode, onUpdateNodePosition, onDeleteNode, searchQue
           <Panel position="top-center" className="flex gap-2 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-2 rounded-2xl shadow-xl mt-4 pointer-events-auto z-50">
             <button 
               onClick={handleGroupNodes}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-semibold shadow-md active:scale-95 flex items-center gap-2"
+              className="px-4 py-2 bg-accent hover:bg-accent text-white rounded-xl transition-colors font-semibold shadow-md active:scale-95 flex items-center gap-2"
             >
               <Box size={18} />
               {settings.language === 'ar' ? 'تجميع في حاوية' : 'Group in Container'}

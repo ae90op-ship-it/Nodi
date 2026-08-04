@@ -60,6 +60,7 @@ export function SettingsModal({ isOpen, onClose, onSecretCode }: SettingsModalPr
     rounded: 'بطاقات منحنية',
     circular: 'دوائر',
     snapToGrid: 'محاذاة الشبكة (Snap to Grid)',
+    accentColor: 'اللون الأساسي',
     reset: 'إعادة ضبط وحذف كافة البيانات',
     dangerZone: 'منطقة الخطر',
   } : {

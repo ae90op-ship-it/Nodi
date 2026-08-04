@@ -13,6 +13,7 @@ export interface Settings {
   fontSize: FontSize;
   nodeShape: NodeShape;
   snapToGrid: boolean;
+  accentColor: string;
 }
 
 interface SettingsContextType {
@@ -30,6 +31,7 @@ const defaultSettings: Settings = {
   fontSize: 'text-base',
   nodeShape: 'rounded',
   snapToGrid: false,
+  accentColor: '#3b82f6',
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -80,6 +82,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    document.documentElement.style.setProperty('--accent-color', settings.accentColor);
     document.body.className = `${settings.theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-neutral-100 text-neutral-900'} ${settings.fontSize}`;
   }, [settings.language, settings.theme, settings.fontSize]);
 
